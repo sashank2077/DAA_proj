@@ -1,0 +1,488 @@
+/* --- Google Font Import --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+/* --- General Resets and Global Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4facfe;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #00f2fe;
+}
+
+body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
+    font-weight: 300;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* --- Header Section --- */
+header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Main Layout --- */
+.main-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+/* --- Glassmorphism Panel Style --- */
+.control-panel,
+.visualization-area,
+.ds-panel,
+.info-panel,
+.stats-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 25px;
+}
+
+.control-panel {
+    flex: 1;
+    min-width: 350px;
+}
+
+.visualization-area {
+    flex: 3;
+    min-width: 800px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Control Group Styling --- */
+.control-group {
+    margin-bottom: 30px;
+}
+
+h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* --- Algorithm Selector Buttons --- */
+.algorithm-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.algorithm-btn {
+    padding: 12px 18px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+}
+
+.algorithm-btn:hover {
+    background: rgba(79, 172, 254, 0.2);
+    border-color: #4facfe;
+    transform: translateY(-2px);
+}
+
+.algorithm-btn.active {
+    background: #4facfe;
+    color: #111;
+    border-color: #4facfe;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.algorithm-btn:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.algorithm-btn:disabled:hover::after {
+    content: "🚫";
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+/* --- Graph Controls & Sliders --- */
+.graph-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    font-size: 1rem;
+    flex-basis: 40%;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 50%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    outline: none;
+    transition: opacity .2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #4facfe;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #4facfe;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+/* --- Action Buttons --- */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.generate-btn {
+    background: transparent;
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+.generate-btn:hover {
+    background: #4CAF50;
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.visualize-btn {
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: #111;
+}
+.visualize-btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.reset-btn {
+    background: transparent;
+    border: 1px solid #f44336;
+    color: #f44336;
+}
+.reset-btn:hover {
+    background: #f44336;
+    color: white;
+    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+}
+
+
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.action-btn:active {
+    transform: translateY(1px);
+}
+
+.action-btn:disabled {
+    background: #444;
+    color: #888;
+    border-color: #444;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* --- Information Panels --- */
+.info-panel {
+    margin-top: 20px;
+}
+
+.info-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #FFD700; /* Maintained as requested */
+}
+
+.info-content {
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.complexity-info {
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border-left: 3px solid #4facfe;
+}
+
+
+/* --- Canvas & Visualization Area --- */
+.canvas-container {
+    width: 100%;
+    height: 450px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#graphCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.stats-panel {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #FFD700; /* Maintained as requested */
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* --- Data Structures Panels --- */
+.data-structures {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+    min-height: 250px;
+}
+
+.ds-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.ds-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #FFD700; /* Maintained as requested */
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.ds-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 200px; /* Adjust as needed */
+    padding-right: 10px; /* For scrollbar spacing */
+}
+
+/* --- Data Structure Items --- */
+.priority-queue-content {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 5px;
+}
+
+.queue-item, .ds-item {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    transition: background 0.3s;
+}
+
+.ds-item.mst {
+    background: rgba(76, 175, 80, 0.3); /* Maintained as requested */
+    border: 1px solid #4CAF50; /* Maintained as requested */
+}
+
+.ds-item.component {
+    background: rgba(33, 150, 243, 0.3); /* Maintained as requested */
+    border: 1px solid #2196F3; /* Maintained as requested */
+}
+
+/* --- Legend Styling --- */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Maintained Colors as requested */
+.node-color { background: #FF5722; }
+.edge-color { background: #9C27B0; }
+.mst-edge-color { background: #4CAF50; }
+.consider-edge-color { background: #FF9800; }
+.cycle-edge-color { background: #f44336; }
+
+/* --- Animation Status and Step Info --- */
+.animation-status {
+    text-align: center;
+    padding: 12px;
+    margin: 10px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-weight: 400;
+}
+
+.step-highlight {
+    background: rgba(255, 215, 0, 0.2); /* Maintained as requested */
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid #FFD700; /* Maintained as requested */
+}
+
+.step-explanation {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    padding-left: 10px;
+}
+
+
+/* --- Media Queries for Responsiveness --- */
+@media (max-width: 1200px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .control-panel, .visualization-area {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .data-structures {
+        flex-direction: column;
+        height: auto;
+        gap: 15px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+}
