@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Algorithm Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .visualization-area {
+            flex: 2;
+            min-width: 800px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+        }
+        
+        .algorithm-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .algorithm-btn {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .algorithm-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .algorithm-btn.active {
+            background: rgba(103, 58, 183, 0.7);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .graph-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        label {
+            font-size: 1rem;
+        }
+        
+        input[type="range"] {
+            width: 60%;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .generate-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .visualize-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .reset-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .action-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+        
+        .info-panel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+        
+        .info-content {
+            line-height: 1.6;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        #graphCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .data-structures {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            height: 250px;
+        }
+        
+        .ds-panel {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            min-height: 250px;
+        }
+        
+        .ds-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #FFD700;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .ds-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 200px;
+        }
+        
+        .priority-queue-content {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 5px;
+        }
+        
+        .queue-item {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+        
+        .ds-item {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+        
+        .ds-item.mst {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .node-color {
+            background: #FF5722;
+        }
+        
+        .edge-color {
+            background: #9C27B0;
+        }
+        
+        .mst-edge-color {
+            background: #4CAF50;
+        }
+        
+        .consider-edge-color {
+            background: #FF9800;
+        }
+        
+        .cycle-edge-color {
+            background: #f44336;
+        }
+        
+        .neighbor-node-color {
+            background: #2196F3;
+        }
+        
+        .animation-status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .complexity-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .step-highlight {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 5px;
+            padding: 5px;
+            margin: 5px 0;
+            border-left: 3px solid #FFD700;
+        }
+        
+        .step-explanation {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .control-panel, .visualization-area {
+                min-width: 100%;
+            }
+            
+            .data-structures {
+                flex-direction: column;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Graph Algorithm Visualizer</h1>
+            <p class="subtitle">Visualize Minimum Spanning Tree algorithms with step-by-step animations</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="control-group">
+                    <h2>Algorithms</h2>
+                    <div class="algorithm-selector">
+                        <button class="algorithm-btn active" data-algo="prim">Prim's Algorithm</button>
+                        <button class="algorithm-btn" data-algo="kruskal">Kruskal's Algorithm</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Graph Controls</h2>
+                    <div class="graph-controls">
+                        <div class="control-row">
+                            <label for="nodeCount">Number of Nodes:</label>
+                            <input type="range" id="nodeCount" min="6" max="20" value="8">
+                            <span id="nodeCountValue">8</span>
+                        </div>
+                        
+                        <div class="control-row">
+                            <label for="edgeDensity">Edge Density:</label>
+                            <input type="range" id="edgeDensity" min="60" max="95" value="75">
+                            <span id="edgeDensityValue">75%</span>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button class="action-btn generate-btn" id="generateGraph">Generate Graph</button>
+                            <button class="action-btn visualize-btn" id="visualize">Visualize</button>
+                            <button class="action-btn reset-btn" id="reset">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h2>Animation Controls</h2>
+                    <div class="graph-controls">
+                        <div class="control-row">
+                            <label for="animationSpeed">Animation Speed:</label>
+                            <input type="range" id="animationSpeed" min="1" max="10" value="5">
+                            <span id="animationSpeedValue">Medium</span>
+                        </div>
+                        
+                        <div class="animation-status" id="animationStatus">
+                            Ready to visualize
+                        </div>
+                        
+                        <div class="button-group">
+                            <button class="action-btn" id="stepBackward" disabled>Step Backward</button>
+                            <button class="action-btn" id="stepForward" disabled>Step Forward</button>
+                            <button class="action-btn" id="pauseResume" disabled>Pause</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-panel">
+                    <div class="info-title" id="currentAlgorithmTitle">Prim's Algorithm</div>
+                    <div class="info-content" id="algorithmInfo">
+                        <p><strong>Prim's Algorithm:</strong> Builds MST by growing from a starting node, always adding the minimum weight edge that connects to a new node.</p>
+                        <div class="complexity-info">
+                            <strong>Time Complexity:</strong> O(E log V) with priority queue<br>
+                            <strong>Space Complexity:</strong> O(V + E)<br>
+                            <strong>Data Structure:</strong> Priority Queue (Min-Heap)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-area">
+                <h2>Visualization</h2>
+                <div class="canvas-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+                
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalNodes">0</div>
+                        <div class="stat-label">Total Nodes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalEdges">0</div>
+                        <div class="stat-label">Total Edges</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="mstWeight">0</div>
+                        <div class="stat-label">MST Weight</div>
+                    </div>
+                </div>
+                
+                <div class="data-structures">
+                    <div class="ds-panel" id="priorityQueuePanel">
+                        <div class="ds-title">Priority Queue (Min-Heap)</div>
+                        <div class="ds-content priority-queue-content" id="priorityQueueContent">
+                            <div class="queue-item">Queue Empty</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ds-panel" id="visitedNodesPanel">
+                        <div class="ds-title">Visited Nodes</div>
+                        <div class="ds-content" id="visitedNodesContent"></div>
+                    </div>
+                    
+                    <div class="ds-panel" id="mstEdgesPanel">
+                        <div class="ds-title">MST Edges</div>
+                        <div class="ds-content" id="mstEdgesContent"></div>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color node-color"></div>
+                        <span>Node</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color neighbor-node-color"></div>
+                        <span>Neighbor</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color edge-color"></div>
+                        <span>Edge</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color mst-edge-color"></div>
+                        <span>MST Edge</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color consider-edge-color"></div>
+                        <span>Considering</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color cycle-edge-color"></div>
+                        <span>Invalid/Cycle</span>
+                    </div>
+                </div>
+                
+                <div class="info-panel" style="margin-top: 20px;">
+                    <div class="info-title">Algorithm Steps</div>
+                    <div class="info-content" id="stepInfo">
+                        Click "Visualize" to start the algorithm visualization.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        function setCanvasSize() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+        
+        // Graph data structure
+        let graph = {
+            nodes: [],
+            edges: [],
+            mstEdges: []
+        };
+        
+        // Animation state
+        let animationState = {
+            isRunning: false,
+            currentStep: 0,
+            totalSteps: 0,
+            steps: [],
+            speed: 5,
+            intervalId: null,
+            consideringEdge: null,
+            invalidEdges: [],
+            cycleEdges: [],
+            cycleNodes: [],
+            priorityQueue: [],
+            visitedNodes: new Set(),
+            disjointSets: [],
+            processedEdges: new Set(),
+            neighborNodes: new Set(),
+            draggingNode: null,
+            dragOffset: { x: 0, y: 0 }
+        };
+        
+        // Algorithm information
+        const algorithmInfo = {
+            prim: {
+                title: "Prim's Algorithm",
+                description: `<p><strong>Prim's Algorithm:</strong> Builds MST by growing from a starting node, always adding the minimum weight edge that connects to a new node.</p>
+                            <div class="complexity-info">
+                                <strong>Time Complexity:</strong> O(E log V) with priority queue<br>
+                                <strong>Space Complexity:</strong> O(V + E)<br>
+                                <strong>Data Structure:</strong> Priority Queue (Min-Heap)
+                            </div>`
+            },
+            kruskal: {
+                title: "Kruskal's Algorithm", 
+                description: `<p><strong>Kruskal's Algorithm:</strong> Builds MST by sorting all edges and adding them in ascending order, using union-find to avoid cycles.</p>
+                            <div class="complexity-info">
+                                <strong>Time Complexity:</strong> O(E log E) for sorting<br>
+                                <strong>Space Complexity:</strong> O(V + E)<br>
+                                <strong>Data Structure:</strong> Disjoint Set (Union-Find)
+                            </div>`
+            }
+        };
+        
+        // Initialize event listeners
+        document.getElementById('currentAlgorithmTitle').textContent = algorithmInfo.prim.title;
+        document.getElementById('algorithmInfo').innerHTML = algorithmInfo.prim.description;
+        
+        // Algorithm selection
+        document.querySelectorAll('.algorithm-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.algorithm-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const algo = this.dataset.algo;
+                document.getElementById('currentAlgorithmTitle').textContent = algorithmInfo[algo].title;
+                document.getElementById('algorithmInfo').innerHTML = algorithmInfo[algo].description;
+            });
+        });
+        
+        // Update slider values
+        document.getElementById('nodeCount').addEventListener('input', function() {
+            document.getElementById('nodeCountValue').textContent = this.value;
+        });
+        
+        document.getElementById('edgeDensity').addEventListener('input', function() {
+            document.getElementById('edgeDensityValue').textContent = this.value + '%';
+        });
+        
+        document.getElementById('animationSpeed').addEventListener('input', function() {
+            const speedLabels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Very Fast'];
+            const speedIndex = Math.floor((this.value - 1) / 2);
+            document.getElementById('animationSpeedValue').textContent = speedLabels[speedIndex];
+            animationState.speed = parseInt(this.value);
+            
+            if (animationState.isRunning && animationState.intervalId) {
+                clearInterval(animationState.intervalId);
+                animationState.intervalId = setInterval(animateStep, getAnimationDelay());
+            }
+        });
+        
+        // Generate a graph with guaranteed cycles
+        document.getElementById('generateGraph').addEventListener('click', generateGraph);
+        
+        function generateGraph() {
+            const nodeCount = parseInt(document.getElementById('nodeCount').value);
+            const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
+            
+            graph.nodes = [];
+            graph.edges = [];
+            graph.mstEdges = [];
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+            
+            for (let i = 0; i < nodeCount; i++) {
+                const angle = (2 * Math.PI * i) / nodeCount;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                
+                graph.nodes.push({
+                    id: i,
+                    x: x,
+                    y: y,
+                    label: String.fromCharCode(65 + i)
+                });
+            }
+            
+            createSpanningTree();
+            addGuaranteedCycleEdges(edgeDensity);
+            resetAnimation();
+            updateStats();
+            drawGraph();
+        }
+        
+        function createSpanningTree() {
+            const visited = new Set();
+            const unvisited = new Set([...Array(graph.nodes.length).keys()]);
+            
+            const startNode = Math.floor(Math.random() * graph.nodes.length);
+            visited.add(startNode);
+            unvisited.delete(startNode);
+            
+            while (unvisited.size > 0) {
+                const visitedArray = Array.from(visited);
+                const fromNode = visitedArray[Math.floor(Math.random() * visitedArray.length)];
+                const unvisitedArray = Array.from(unvisited);
+                const toNode = unvisitedArray[Math.floor(Math.random() * unvisitedArray.length)];
+                
+                const weight = Math.floor(Math.random() * 20) + 1;
+                graph.edges.push({
+                    from: fromNode,
+                    to: toNode,
+                    weight: weight,
+                    isInMST: false
+                });
+                
+                visited.add(toNode);
+                unvisited.delete(toNode);
+            }
+        }
+        
+        function addGuaranteedCycleEdges(edgeDensity) {
+            const nodeCount = graph.nodes.length;
+            const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2;
+            const currentEdges = graph.edges.length;
+            const targetEdges = Math.max(currentEdges, Math.floor(edgeDensity * maxPossibleEdges));
+            
+            // Create multiple cycles - guaranteed to have cycles
+            const cyclesToCreate = Math.max(2, Math.floor(nodeCount / 3));
+            
+            for (let cycle = 0; cycle < cyclesToCreate; cycle++) {
+                const cycleSize = Math.floor(Math.random() * 2) + 3; // 3-4 nodes
+                const cycleNodes = [];
+                
+                while (cycleNodes.length < cycleSize) {
+                    const randomNode = Math.floor(Math.random() * nodeCount);
+                    if (!cycleNodes.includes(randomNode)) {
+                        cycleNodes.push(randomNode);
+                    }
+                }
+                
+                // Create complete cycle
+                for (let i = 0; i < cycleSize; i++) {
+                    const fromNode = cycleNodes[i];
+                    const toNode = cycleNodes[(i + 1) % cycleSize];
+                    
+                    const edgeExists = graph.edges.some(edge => 
+                        (edge.from === fromNode && edge.to === toNode) || 
+                        (edge.from === toNode && edge.to === fromNode)
+                    );
+                    
+                    if (!edgeExists) {
+                        const weight = Math.floor(Math.random() * 20) + 1;
+                        graph.edges.push({
+                            from: fromNode,
+                            to: toNode,
+                            weight: weight,
+                            isInMST: false
+                        });
+                    }
+                }
+            }
+            
+            // Add more random edges to reach target density
+            while (graph.edges.length < targetEdges && graph.edges.length < maxPossibleEdges) {
+                const fromNode = Math.floor(Math.random() * nodeCount);
+                let toNode = Math.floor(Math.random() * nodeCount);
+                
+                if (fromNode !== toNode) {
+                    const edgeExists = graph.edges.some(edge => 
+                        (edge.from === fromNode && edge.to === toNode) || 
+                        (edge.from === toNode && edge.to === fromNode)
+                    );
+                    
+                    if (!edgeExists) {
+                        const weight = Math.floor(Math.random() * 20) + 1;
+                        graph.edges.push({
+                            from: fromNode,
+                            to: toNode,
+                            weight: weight,
+                            isInMST: false
+                        });
+                    }
+                }
+            }
+        }
+        
+        function getAnimationDelay() {
+            return 2200 - (animationState.speed * 200);
+        }
+        
+        function updateStats() {
+            document.getElementById('totalNodes').textContent = graph.nodes.length;
+            document.getElementById('totalEdges').textContent = graph.edges.length;
+            
+            const totalWeight = graph.mstEdges.reduce((sum, edge) => sum + edge.weight, 0);
+            document.getElementById('mstWeight').textContent = totalWeight;
+        }
+        
+        function updateDataStructures() {
+            const pqContent = document.getElementById('priorityQueueContent');
+            pqContent.innerHTML = '';
+            
+            if (animationState.priorityQueue.length === 0) {
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'queue-item';
+                emptyItem.textContent = 'Queue Empty';
+                pqContent.appendChild(emptyItem);
+            } else {
+                animationState.priorityQueue.forEach((item) => {
+                    const div = document.createElement('div');
+                    div.className = 'queue-item';
+                    
+                    if (item.edge) {
+                        const fromLabel = graph.nodes[item.edge.from].label;
+                        const toLabel = graph.nodes[item.edge.to].label;
+                        div.textContent = `${fromLabel}-${toLabel} (${item.edge.weight})`;
+                    }
+                    pqContent.appendChild(div);
+                });
+            }
+            
+            const visitedContent = document.getElementById('visitedNodesContent');
+            visitedContent.innerHTML = '';
+            Array.from(animationState.visitedNodes).sort().forEach(nodeId => {
+                const div = document.createElement('div');
+                div.className = 'ds-item';
+                div.textContent = graph.nodes[nodeId].label;
+                visitedContent.appendChild(div);
+            });
+            
+            const mstContent = document.getElementById('mstEdgesContent');
+            mstContent.innerHTML = '';
+            graph.mstEdges.forEach(edge => {
+                const div = document.createElement('div');
+                div.className = 'ds-item mst';
+                const fromLabel = graph.nodes[edge.from].label;
+                const toLabel = graph.nodes[edge.to].label;
+                div.textContent = `${fromLabel}-${toLabel} (${edge.weight})`;
+                mstContent.appendChild(div);
+            });
+        }
+        
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw edges first
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = 'white';
+            
+            graph.edges.forEach(edge => {
+                const fromNode = graph.nodes[edge.from];
+                const toNode = graph.nodes[edge.to];
+                
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                
+                // Check if this edge is invalid or part of a cycle
+                const isInvalid = animationState.invalidEdges.some(invEdge => 
+                    (invEdge.from === edge.from && invEdge.to === edge.to) || 
+                    (invEdge.from === edge.to && invEdge.to === edge.from)
+                );
+                
+                const isInCycle = animationState.cycleEdges.some(ce => 
+                    (ce.from === edge.from && ce.to === edge.to) || 
+                    (ce.from === edge.to && ce.to === edge.from)
+                );
+                
+                if (edge.isInMST) {
+                    ctx.strokeStyle = '#4CAF50';
+                    ctx.lineWidth = 4;
+                } else if (isInvalid || isInCycle) {
+                    ctx.strokeStyle = '#f44336';
+                    ctx.lineWidth = 4;
+                } else if (animationState.consideringEdge && 
+                          ((animationState.consideringEdge.from === edge.from && animationState.consideringEdge.to === edge.to) ||
+                           (animationState.consideringEdge.from === edge.to && animationState.consideringEdge.to === edge.from))) {
+                    ctx.strokeStyle = '#FF9800';
+                    ctx.lineWidth = 4;
+                } else {
+                    ctx.strokeStyle = '#9C27B0';
+                    ctx.lineWidth = 2;
+                }
+                
+                ctx.stroke();
+                
+                // Draw weight with better visibility
+                const midX = (fromNode.x + toNode.x) / 2;
+                const midY = (fromNode.y + toNode.y) / 2;
+                
+                // Draw background for weight text
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(midX - 15, midY - 12, 30, 24);
+                
+                // Draw weight text
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(edge.weight, midX, midY);
+            });
+            
+            // Draw nodes
+            graph.nodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+                
+                // Check if this node is a neighbor (unvisited but connected to visited nodes)
+                const isNeighbor = animationState.neighborNodes.has(node.id);
+                const isInCycle = animationState.cycleNodes.includes(node.id);
+                const isVisited = animationState.visitedNodes.has(node.id);
+                
+                if (isInCycle) {
+                    ctx.fillStyle = '#f44336';
+                } else if (isNeighbor && !isVisited) {
+                    ctx.fillStyle = '#2196F3'; // Blue for neighbor nodes
+                } else if (isVisited) {
+                    ctx.fillStyle = '#4CAF50'; // Green for visited nodes
+                } else {
+                    ctx.fillStyle = '#FF5722'; // Orange for unvisited nodes
+                }
+                
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw node label
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+            });
+            
+            updateDataStructures();
+            updateStats();
+        }
+        
+        function updateAnimationControls() {
+            const hasSteps = animationState.steps.length > 0;
+            const isAtStart = animationState.currentStep === 0;
+            const isAtEnd = animationState.currentStep === animationState.totalSteps;
+            
+            document.getElementById('stepBackward').disabled = !hasSteps || isAtStart || animationState.isRunning;
+            document.getElementById('stepForward').disabled = !hasSteps || isAtEnd || animationState.isRunning;
+            document.getElementById('pauseResume').disabled = !hasSteps;
+            
+            if (animationState.isRunning) {
+                document.getElementById('pauseResume').textContent = 'Pause';
+                document.getElementById('animationStatus').textContent = `Running (Step ${animationState.currentStep + 1}/${animationState.totalSteps})`;
+            } else {
+                document.getElementById('pauseResume').textContent = 'Resume';
+                if (hasSteps) {
+                    document.getElementById('animationStatus').textContent = `Paused (Step ${animationState.currentStep}/${animationState.totalSteps})`;
+                } else {
+                    document.getElementById('animationStatus').textContent = 'Ready to visualize';
+                }
+            }
+        }
+        
+        document.getElementById('reset').addEventListener('click', resetAnimation);
+        
+        function resetAnimation() {
+            if (animationState.intervalId) {
+                clearInterval(animationState.intervalId);
+                animationState.intervalId = null;
+            }
+            
+            animationState.isRunning = false;
+            animationState.currentStep = 0;
+            animationState.totalSteps = 0;
+            animationState.steps = [];
+            animationState.consideringEdge = null;
+            animationState.invalidEdges = [];
+            animationState.cycleEdges = [];
+            animationState.cycleNodes = [];
+            animationState.priorityQueue = [];
+            animationState.visitedNodes = new Set();
+            animationState.disjointSets = [];
+            animationState.processedEdges = new Set();
+            animationState.neighborNodes = new Set();
+            
+            graph.edges.forEach(edge => {
+                edge.isInMST = false;
+            });
+            
+            graph.mstEdges = [];
+            
+            document.getElementById('stepInfo').textContent = 'Click "Visualize" to start the algorithm visualization.';
+            updateAnimationControls();
+            updateDataStructures();
+            updateStats();
+            drawGraph();
+        }
+        
+        document.getElementById('visualize').addEventListener('click', startVisualization);
+        
+        function startVisualization() {
+            resetAnimation();
+            
+            const selectedAlgorithm = document.querySelector('.algorithm-btn.active').dataset.algo;
+            
+            if (selectedAlgorithm === 'prim') {
+                primsAlgorithm();
+            } else if (selectedAlgorithm === 'kruskal') {
+                kruskalsAlgorithm();
+            }
+            
+            if (animationState.steps.length > 0) {
+                animationState.isRunning = true;
+                animationState.totalSteps = animationState.steps.length;
+                
+                updateAnimationControls();
+                animationState.intervalId = setInterval(animateStep, getAnimationDelay());
+            }
+        }
+        
+        function animateStep() {
+            if (animationState.currentStep < animationState.totalSteps) {
+                executeStep(animationState.currentStep);
+                animationState.currentStep++;
+                updateAnimationControls();
+            } else {
+                clearInterval(animationState.intervalId);
+                animationState.intervalId = null;
+                animationState.isRunning = false;
+                
+                const totalWeight = graph.mstEdges.reduce((sum, edge) => sum + edge.weight, 0);
+                document.getElementById('stepInfo').innerHTML = 
+                    `<div class="step-highlight">Algorithm complete!</div>
+                     <div class="step-explanation">MST has ${graph.mstEdges.length} edges with total weight ${totalWeight}.</div>`;
+                
+                updateAnimationControls();
+            }
+        }
+        
+        function executeStep(stepIndex) {
+            const step = animationState.steps[stepIndex];
+            animationState.consideringEdge = null;
+            animationState.invalidEdges = [];
+            animationState.cycleEdges = [];
+            animationState.cycleNodes = [];
+            animationState.neighborNodes = new Set();
+            
+            if (step.action === 'addEdge') {
+                const edge = graph.edges.find(e => 
+                    (e.from === step.edge.from && e.to === step.edge.to) || 
+                    (e.from === step.edge.to && e.to === step.edge.from)
+                );
+                
+                if (edge) {
+                    edge.isInMST = true;
+                    graph.mstEdges.push(edge);
+                    const edgeKey = `${Math.min(edge.from, edge.to)}-${Math.max(edge.from, edge.to)}`;
+                    animationState.processedEdges.add(edgeKey);
+                }
+            } else if (step.action === 'considerEdge') {
+                animationState.consideringEdge = step.edge;
+                const edgeKey = `${Math.min(step.edge.from, step.edge.to)}-${Math.max(step.edge.from, step.edge.to)}`;
+                animationState.processedEdges.add(edgeKey);
+            } else if (step.action === 'showInvalid') {
+                animationState.invalidEdges = step.invalidEdges || [];
+                if (step.cycleEdges) {
+                    animationState.cycleEdges = step.cycleEdges;
+                    animationState.cycleNodes = step.cycleNodes || [];
+                }
+            } else if (step.action === 'showNeighbors') {
+                // Set neighbor nodes - these are unvisited nodes connected to visited nodes
+                animationState.neighborNodes = new Set(step.neighborNodes || []);
+            }
+            
+            if (step.priorityQueue) {
+                animationState.priorityQueue = step.priorityQueue;
+            }
+            if (step.visitedNodes) {
+                animationState.visitedNodes = new Set(step.visitedNodes);
+            }
+            if (step.disjointSets) {
+                animationState.disjointSets = step.disjointSets;
+            }
+            
+            document.getElementById('stepInfo').innerHTML = step.description;
+            drawGraph();
+        }
+        
+        // Enhanced Prim's Algorithm with proper neighbor highlighting
+        function primsAlgorithm() {
+            const steps = [];
+            const visited = new Set();
+            const edges = [...graph.edges];
+            
+            visited.add(0);
+            
+            const priorityQueue = [];
+            
+            // Find all unvisited neighbors of visited nodes
+            const updateNeighbors = () => {
+                const neighbors = new Set();
+                edges.forEach(edge => {
+                    if (visited.has(edge.from) && !visited.has(edge.to)) {
+                        neighbors.add(edge.to);
+                    }
+                    if (visited.has(edge.to) && !visited.has(edge.from)) {
+                        neighbors.add(edge.from);
+                    }
+                });
+                return neighbors;
+            };
+            
+            // Add edges from starting node to priority queue
+            edges.forEach(edge => {
+                if (edge.from === 0 || edge.to === 0) {
+                    priorityQueue.push({
+                        edge: edge,
+                        weight: edge.weight
+                    });
+                }
+            });
+            
+            priorityQueue.sort((a, b) => a.weight - b.weight);
+            
+            steps.push({
+                action: 'message',
+                description: `<div class="step-highlight">Starting Prim's algorithm from node ${graph.nodes[0].label}</div>
+                             <div class="step-explanation">Initializing priority queue with edges from starting node.</div>`,
+                priorityQueue: [...priorityQueue],
+                visitedNodes: [...visited],
+                neighborNodes: [...updateNeighbors()]
+            });
+            
+            while (visited.size < graph.nodes.length && priorityQueue.length > 0) {
+                const minEdgeItem = priorityQueue.shift();
+                const minEdge = minEdgeItem.edge;
+                
+                const fromVisited = visited.has(minEdge.from);
+                const toVisited = visited.has(minEdge.to);
+                
+                if ((fromVisited && !toVisited) || (!fromVisited && toVisited)) {
+                    const newNode = fromVisited ? minEdge.to : minEdge.from;
+                    
+                    steps.push({
+                        action: 'considerEdge',
+                        edge: minEdge,
+                        description: `<div class="step-highlight">Processing edge ${graph.nodes[minEdge.from].label}-${graph.nodes[minEdge.to].label} (weight: ${minEdge.weight})</div>
+                                     <div class="step-explanation">This is the minimum weight edge in the priority queue.</div>`,
+                        priorityQueue: [...priorityQueue],
+                        visitedNodes: [...visited],
+                        neighborNodes: [...updateNeighbors()]
+                    });
+                    
+                    steps.push({
+                        action: 'addEdge',
+                        edge: minEdge,
+                        description: `<div class="step-highlight">✓ Added edge ${graph.nodes[minEdge.from].label}-${graph.nodes[minEdge.to].label} to MST</div>
+                                     <div class="step-explanation">This edge connects a visited node to an unvisited node without forming a cycle.</div>`,
+                        priorityQueue: [...priorityQueue],
+                        visitedNodes: [...visited],
+                        neighborNodes: [...updateNeighbors()]
+                    });
+                    
+                    visited.add(newNode);
+                    
+                    // Add edges from the new node to priority queue
+                    edges.forEach(edge => {
+                        if ((edge.from === newNode && !visited.has(edge.to)) || 
+                            (edge.to === newNode && !visited.has(edge.from))) {
+                            priorityQueue.push({
+                                edge: edge,
+                                weight: edge.weight
+                            });
+                        }
+                    });
+                    
+                    priorityQueue.sort((a, b) => a.weight - b.weight);
+                    
+                    steps.push({
+                        action: 'message',
+                        description: `<div class="step-highlight">Added node ${graph.nodes[newNode].label} to MST</div>
+                                     <div class="step-explanation">Added edges from ${graph.nodes[newNode].label} to the priority queue.</div>`,
+                        priorityQueue: [...priorityQueue],
+                        visitedNodes: [...visited],
+                        neighborNodes: [...updateNeighbors()]
+                    });
+                } else {
+                    // This edge is invalid (would form cycle)
+                    const cycleInfo = findActualCycle(minEdge, visited);
+                    
+                    steps.push({
+                        action: 'considerEdge',
+                        edge: minEdge,
+                        description: `<div class="step-highlight">Checking edge ${graph.nodes[minEdge.from].label}-${graph.nodes[minEdge.to].label} (weight: ${minEdge.weight})</div>
+                                     <div class="step-explanation">This edge connects two already visited nodes.</div>`,
+                        priorityQueue: [...priorityQueue],
+                        visitedNodes: [...visited],
+                        neighborNodes: [...updateNeighbors()]
+                    });
+                    
+                    steps.push({
+                        action: 'showInvalid',
+                        edge: minEdge,
+                        invalidEdges: [minEdge],
+                        cycleEdges: cycleInfo.edges,
+                        cycleNodes: cycleInfo.nodes,
+                        description: `<div class="step-highlight">❌ Edge ${graph.nodes[minEdge.from].label}-${graph.nodes[minEdge.to].label} is INVALID</div>
+                                     <div class="step-explanation">This edge would form a cycle in the MST.</div>`,
+                        priorityQueue: [...priorityQueue],
+                        visitedNodes: [...visited],
+                        neighborNodes: [...updateNeighbors()]
+                    });
+                }
+            }
+            
+            animationState.steps = steps;
+        }
+        
+        // Enhanced Kruskal's Algorithm
+        function kruskalsAlgorithm() {
+            const steps = [];
+            const edges = [...graph.edges];
+            
+            edges.sort((a, b) => a.weight - b.weight);
+            
+            const parent = [];
+            const rank = [];
+            for (let i = 0; i < graph.nodes.length; i++) {
+                parent[i] = i;
+                rank[i] = 0;
+            }
+            
+            function find(u) {
+                if (parent[u] !== u) {
+                    parent[u] = find(parent[u]);
+                }
+                return parent[u];
+            }
+            
+            function union(u, v) {
+                const rootU = find(u);
+                const rootV = find(v);
+                if (rootU !== rootV) {
+                    if (rank[rootU] > rank[rootV]) {
+                        parent[rootV] = rootU;
+                    } else if (rank[rootU] < rank[rootV]) {
+                        parent[rootU] = rootV;
+                    } else {
+                        parent[rootV] = rootU;
+                        rank[rootU]++;
+                    }
+                    return true;
+                }
+                return false;
+            }
+            
+            function getDisjointSets() {
+                const sets = {};
+                for (let i = 0; i < graph.nodes.length; i++) {
+                    const root = find(i);
+                    if (!sets[root]) sets[root] = [];
+                    sets[root].push(i);
+                }
+                return Object.values(sets);
+            }
+            
+            steps.push({
+                action: 'message',
+                description: `<div class="step-highlight">Starting Kruskal's algorithm</div>
+                             <div class="step-explanation">Sorting all edges by weight in ascending order.</div>`,
+                priorityQueue: edges.map(edge => ({ edge, weight: edge.weight })),
+                disjointSets: getDisjointSets()
+            });
+            
+            let edgesAdded = 0;
+            let edgeIndex = 0;
+            
+            while (edgesAdded < graph.nodes.length - 1 && edgeIndex < edges.length) {
+                const edge = edges[edgeIndex];
+                
+                steps.push({
+                    action: 'considerEdge',
+                    edge: edge,
+                    description: `<div class="step-highlight">Processing edge ${graph.nodes[edge.from].label}-${graph.nodes[edge.to].label} (weight: ${edge.weight})</div>
+                                 <div class="step-explanation">Checking if this edge can be added without forming a cycle.</div>`,
+                    priorityQueue: edges.slice(edgeIndex + 1).map(e => ({ edge: e, weight: e.weight })),
+                    disjointSets: getDisjointSets()
+                });
+                
+                if (union(edge.from, edge.to)) {
+                    steps.push({
+                        action: 'addEdge',
+                        edge: edge,
+                        description: `<div class="step-highlight">✓ Added edge ${graph.nodes[edge.from].label}-${graph.nodes[edge.to].label} to MST</div>
+                                     <div class="step-explanation">This edge connects two different components without forming a cycle.</div>`,
+                        priorityQueue: edges.slice(edgeIndex + 1).map(e => ({ edge: e, weight: e.weight })),
+                        disjointSets: getDisjointSets()
+                    });
+                    edgesAdded++;
+                } else {
+                    const cycleInfo = findActualCycleForKruskal(edge, parent);
+                    
+                    steps.push({
+                        action: 'showInvalid',
+                        edge: edge,
+                        invalidEdges: [edge],
+                        cycleEdges: cycleInfo.edges,
+                        cycleNodes: cycleInfo.nodes,
+                        description: `<div class="step-highlight">❌ Edge ${graph.nodes[edge.from].label}-${graph.nodes[edge.to].label} is INVALID</div>
+                                     <div class="step-explanation">This edge would form a cycle in the MST.</div>`,
+                        priorityQueue: edges.slice(edgeIndex + 1).map(e => ({ edge: e, weight: e.weight })),
+                        disjointSets: getDisjointSets()
+                    });
+                }
+                
+                edgeIndex++;
+            }
+            
+            animationState.steps = steps;
+        }
+        
+        // Find actual cycle using BFS
+        function findActualCycle(edge, visited) {
+            if (!visited.has(edge.from) || !visited.has(edge.to)) {
+                return { edges: [], nodes: [] };
+            }
+            
+            const queue = [[edge.from, []]];
+            const visitedNodes = new Set([edge.from]);
+            let foundPath = null;
+            
+            while (queue.length > 0 && !foundPath) {
+                const [current, path] = queue.shift();
+                
+                if (current === edge.to && path.length > 0) {
+                    foundPath = path;
+                    break;
+                }
+                
+                // Explore MST edges from current node
+                graph.mstEdges.forEach(mstEdge => {
+                    if (mstEdge.from === current && !visitedNodes.has(mstEdge.to)) {
+                        visitedNodes.add(mstEdge.to);
+                        queue.push([mstEdge.to, [...path, mstEdge]]);
+                    } else if (mstEdge.to === current && !visitedNodes.has(mstEdge.from)) {
+                        visitedNodes.add(mstEdge.from);
+                        queue.push([mstEdge.from, [...path, mstEdge]]);
+                    }
+                });
+            }
+            
+            if (foundPath) {
+                return {
+                    edges: [edge, ...foundPath],
+                    nodes: Array.from(new Set([edge.from, edge.to, ...foundPath.flatMap(e => [e.from, e.to])]))
+                };
+            }
+            
+            return { edges: [], nodes: [] };
+        }
+        
+        function findActualCycleForKruskal(edge, parent) {
+            const rootFrom = findRoot(edge.from, parent);
+            const rootTo = findRoot(edge.to, parent);
+            
+            if (rootFrom !== rootTo) {
+                return { edges: [], nodes: [] };
+            }
+            
+            // Find all MST edges in the same component that form a cycle with this edge
+            const componentEdges = graph.mstEdges.filter(mstEdge => 
+                findRoot(mstEdge.from, parent) === rootFrom
+            );
+            
+            return {
+                edges: [edge, ...componentEdges],
+                nodes: Array.from(new Set([edge.from, edge.to, ...componentEdges.flatMap(e => [e.from, e.to])]))
+            };
+        }
+        
+        function findRoot(node, parent) {
+            while (parent[node] !== node) {
+                node = parent[node];
+            }
+            return node;
+        }
+        
+        // Animation controls
+        document.getElementById('stepForward').addEventListener('click', function() {
+            if (animationState.currentStep < animationState.totalSteps) {
+                if (animationState.intervalId) {
+                    clearInterval(animationState.intervalId);
+                    animationState.intervalId = null;
+                }
+                animationState.isRunning = false;
+                executeStep(animationState.currentStep);
+                animationState.currentStep++;
+                updateAnimationControls();
+            }
+        });
+        
+        document.getElementById('stepBackward').addEventListener('click', function() {
+            if (animationState.currentStep > 0) {
+                if (animationState.intervalId) {
+                    clearInterval(animationState.intervalId);
+                    animationState.intervalId = null;
+                }
+                animationState.isRunning = false;
+                animationState.currentStep--;
+                
+                graph.edges.forEach(edge => {
+                    edge.isInMST = false;
+                });
+                
+                graph.mstEdges = [];
+                animationState.consideringEdge = null;
+                animationState.invalidEdges = [];
+                animationState.cycleEdges = [];
+                animationState.cycleNodes = [];
+                animationState.processedEdges = new Set();
+                animationState.neighborNodes = new Set();
+                
+                for (let i = 0; i < animationState.currentStep; i++) {
+                    const step = animationState.steps[i];
+                    if (step.action === 'addEdge') {
+                        const edge = graph.edges.find(e => 
+                            (e.from === step.edge.from && e.to === step.edge.to) || 
+                            (e.from === step.edge.to && e.to === step.edge.from)
+                        );
+                        
+                        if (edge) {
+                            edge.isInMST = true;
+                            graph.mstEdges.push(edge);
+                            const edgeKey = `${Math.min(edge.from, edge.to)}-${Math.max(edge.from, edge.to)}`;
+                            animationState.processedEdges.add(edgeKey);
+                        }
+                    } else if (step.action === 'considerEdge' && step.edge) {
+                        const edgeKey = `${Math.min(step.edge.from, step.edge.to)}-${Math.max(step.edge.from, step.edge.to)}`;
+                        animationState.processedEdges.add(edgeKey);
+                    }
+                }
+                
+                if (animationState.currentStep > 0) {
+                    const step = animationState.steps[animationState.currentStep - 1];
+                    if (step.priorityQueue) animationState.priorityQueue = step.priorityQueue;
+                    if (step.visitedNodes) animationState.visitedNodes = new Set(step.visitedNodes);
+                    if (step.disjointSets) animationState.disjointSets = step.disjointSets;
+                    if (step.neighborNodes) animationState.neighborNodes = new Set(step.neighborNodes);
+                    
+                    document.getElementById('stepInfo').innerHTML = step.description;
+                } else {
+                    document.getElementById('stepInfo').textContent = 'Click "Visualize" to start the algorithm visualization.';
+                    animationState.priorityQueue = [];
+                    animationState.visitedNodes = new Set();
+                    animationState.disjointSets = [];
+                    animationState.neighborNodes = new Set();
+                }
+                
+                updateAnimationControls();
+                drawGraph();
+            }
+        });
+        
+        document.getElementById('pauseResume').addEventListener('click', function() {
+            if (animationState.isRunning) {
+                clearInterval(animationState.intervalId);
+                animationState.intervalId = null;
+                animationState.isRunning = false;
+            } else {
+                if (animationState.currentStep < animationState.totalSteps) {
+                    animationState.isRunning = true;
+                    animationState.intervalId = setInterval(animateStep, getAnimationDelay());
+                }
+            }
+            updateAnimationControls();
+        });
+        
+        // Node dragging functionality
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+        
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if clicked on a node
+            for (let i = 0; i < graph.nodes.length; i++) {
+                const node = graph.nodes[i];
+                const dx = node.x - x;
+                const dy = node.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= 20) {
+                    animationState.draggingNode = node;
+                    animationState.dragOffset.x = x - node.x;
+                    animationState.dragOffset.y = y - node.y;
+                    break;
+                }
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (animationState.draggingNode) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                animationState.draggingNode.x = x - animationState.dragOffset.x;
+                animationState.draggingNode.y = y - animationState.dragOffset.y;
+                
+                drawGraph();
+            }
+        }
+        
+        function handleMouseUp() {
+            animationState.draggingNode = null;
+        }
+        
+        generateGraph();
+    </script>
+</body>
+</html>
