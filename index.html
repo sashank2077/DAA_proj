@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Graph Algorithm Visualizer</title>
+    <title>Prim's and Kruskal's Algorithm Visualizer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
 
     <div class="container">
         <header>
-            <h1>Advanced Graph Algorithm Visualizer</h1>
+            <h1>Prim's and Kruskal's Algorithm Visualizer</h1>
             <p class="subtitle">Interactively visualize Minimum Spanning Tree algorithms with detailed step-by-step explanations</p>
         </header>
         
@@ -128,7 +128,6 @@
             </div>
         </div>
 
-        <!-- ADD THIS NEW SECTION AT THE BOTTOM -->
         <div class="algorithm-info-sections">
             <div id="primInfoSection" class="algorithm-info-panel">
                 <h2>Prim's Algorithm</h2>
@@ -140,15 +139,15 @@
                     <li>Maintain a priority queue of edges connecting MST nodes to non-MST nodes</li>
                     <li>At each step, add the minimum-weight edge from the priority queue</li>
                     <li>Stop when all nodes are included in the MST</li>
+                    <li>Skip the step when a cycle is encountered</li>
                 </ul>
                 
                 <h4>Algorithm Properties:</h4>
                 <ul>
-                    <li><strong>Time Complexity:</strong> O(E log V) using binary heaps</li>
+                    <li><strong>Time Complexity:</strong> O(E log V) using binary heaps - Priority Queue</li>
                     <li><strong>Space Complexity:</strong> O(V + E)</li>
-                    <li><strong>Optimality:</strong> Always produces a correct MST</li>
-                    <li><strong>Best For:</strong> Dense graphs where E ≈ V²</li>
-                    <li><strong>Data Structures:</strong> Priority Queue, Visited Set</li>
+                    <li><strong>Best For:</strong> Dense graphs (when E ≈ V²) </li>
+                    <li><strong>Data Structures:</strong> Priority Queue (Min-Heap) </li>
                 </ul>
                 
                 <h4>Real-World Applications:</h4>
@@ -174,11 +173,10 @@
                 
                 <h4>Algorithm Properties:</h4>
                 <ul>
-                    <li><strong>Time Complexity:</strong> O(E log E) for sorting + O(E α(V)) for union-find</li>
+                    <li><strong>Time Complexity:</strong> O(E log E) </li>
                     <li><strong>Space Complexity:</strong> O(V + E)</li>
-                    <li><strong>Optimality:</strong> Always produces a correct MST</li>
-                    <li><strong>Best For:</strong> Sparse graphs where E ≈ V</li>
-                    <li><strong>Data Structures:</strong> Union-Find (Disjoint Set), Sorted Edges</li>
+                    <li><strong>Best For:</strong> Sparse graphs (when E ≈ V) </li>
+                    <li><strong>Data Structures:</strong> Disjoint Set (Union-Find) </li>
                 </ul>
                 
                 <h4>Real-World Applications:</h4>

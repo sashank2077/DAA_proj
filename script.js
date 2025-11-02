@@ -1,12 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Canvas setup
+
     const canvas = document.getElementById('graphCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Graph data structure
     let graph = { nodes: [], edges: [], mstEdges: [] };
 
-    // Global state
     let state = {
         isRunning: false,
         currentStep: 0,
@@ -25,11 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
         algorithmLocked: false,
     };
 
-    // --- INITIALIZATION ---
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize);
     initializeEventListeners();
-    generateGraph(); // Generate initial graph
+    generateGraph();
     updateAlgorithmUI();
 
     function updateEdgeDensityForGraphType() {
@@ -38,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const edgeDensityValue = document.getElementById('edgeDensityValue');
         
         if (graphType === 'cycle') {
-            // Set minimum edge density based on node count for guaranteed cycles
+
             const nodeCount = parseInt(document.getElementById('nodeCount').value);
             let minDensity;
             
@@ -49,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             edgeDensitySlider.min = minDensity;
             
-            // If current value is below minimum, set to minimum
             if (parseInt(edgeDensitySlider.value) < minDensity) {
                 edgeDensitySlider.value = minDensity;
                 edgeDensityValue.textContent = minDensity + '%';
@@ -63,15 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
             edgeDensitySlider.value = 100;
             edgeDensityValue.textContent = '100%';
         } else {
-            // Random graph - reset to normal settings
+
             edgeDensitySlider.min = 30;
             edgeDensitySlider.disabled = false;
-            // Don't change current value for random graphs
+
         }
     }
 
 
-    // --- CORE ALGORITHMS ---
     function primsAlgorithm() {
         const startNodeSelect = document.getElementById('startNodeSelect');
         let startNodeId = parseInt(startNodeSelect.value);
@@ -235,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.steps = steps;
     }
 
-    // --- ANIMATION & STEP EXECUTION ---
     function startVisualization() {
         resetAnimationState(false);
         
@@ -300,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         drawGraph();
     }
 
-    // --- GRAPH GENERATION ---
+    // GRAPH GENERATION
     function generateGraph() {
         resetFull();
         const type = document.getElementById('graphTypeSelect').value;
@@ -366,46 +360,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } else if (type === 'cycle') {
-            // RELIABLE guaranteed cycle generation with density enforcement
+
             const nodeCount = parseInt(document.getElementById('nodeCount').value);
             const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
             
             const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2;
-            const minRequiredEdges = Math.max(nodeCount + 2, Math.floor(nodeCount * 1.5)); // Ensure extra edges for cycles
+            const minRequiredEdges = Math.max(nodeCount + 2, Math.floor(nodeCount * 1.5));
             const targetEdges = Math.max(
                 minRequiredEdges,
                 Math.floor(maxPossibleEdges * edgeDensity)
             );
 
-            // Clear any existing edges
             graph.edges = [];
             graph.mstEdges = [];
-
-            // STRATEGY: Create multiple overlapping cycles to guarantee detection
             
-            // 1. Primary Hamiltonian cycle
             for (let i = 0; i < nodeCount; i++) {
                 const from = i;
                 const to = (i + 1) % nodeCount;
-                addEdge(from, to, Math.floor(Math.random() * 10) + 15); // Medium-high weight
+                addEdge(from, to, Math.floor(Math.random() * 10) + 15); 
             }
 
-            // 2. Add multiple low-weight chord edges that create obvious cycles
             const chordCount = Math.max(2, Math.floor(nodeCount * 0.5));
             for (let i = 0; i < chordCount; i++) {
                 const start = i;
-                // Connect to various distances to create different cycle sizes
+
                 const distances = [2, 3, Math.floor(nodeCount/2)];
                 const distance = distances[Math.floor(Math.random() * distances.length)];
                 const end = (start + distance) % nodeCount;
                 
                 if (start !== end && !graph.edges.some(e => 
                     (e.from === start && e.to === end) || (e.from === end && e.to === start))) {
-                    addEdge(start, end, Math.floor(Math.random() * 3) + 1); // Very low weight
+                    addEdge(start, end, Math.floor(Math.random() * 3) + 1);
                 }
             }
 
-            // 3. Fill remaining edges, prioritizing cycle creation
             let attempts = 0;
             while (graph.edges.length < targetEdges && attempts < 500) {
                 const u = Math.floor(Math.random() * nodeCount);
@@ -414,10 +402,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (u !== v && !graph.edges.some(e => 
                     (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
                     
-                    // Check if this would create a cycle
                     let createsCycle = false;
                     
-                    // Simple connectivity check using BFS
                     const visited = new Set();
                     const queue = [u];
                     visited.add(u);
@@ -437,20 +423,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                     
-                    // Assign weight: very low if it creates cycle, random otherwise
                     const weight = createsCycle ? 
-                        Math.floor(Math.random() * 5) + 1 : // 1-5 for cycle edges
-                        Math.floor(Math.random() * 15) + 10; // 10-24 for non-cycle
+                        Math.floor(Math.random() * 5) + 1 : 
+                        Math.floor(Math.random() * 15) + 10; 
                     
                     addEdge(u, v, weight);
                 }
                 attempts++;
             }
 
-            // 4. FINAL GUARANTEE: Add at least 3 very low-weight cycle edges if not enough
             let lowWeightCycleCount = graph.edges.filter(edge => 
                 edge.weight <= 5 && 
-                // Verify it actually creates a cycle
+
                 (() => {
                     const tempEdges = graph.edges.filter(e => e !== edge);
                     const visited = new Set();
@@ -477,11 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ).length;
 
             while (lowWeightCycleCount < 3) {
-                // Find and add more low-weight cycle edges
+
                 for (let i = 0; i < nodeCount && lowWeightCycleCount < 3; i++) {
                     for (let j = i + 2; j < nodeCount && lowWeightCycleCount < 3; j++) {
                         if (!graph.edges.some(e => (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
-                            // Check connectivity
+
                             const visited = new Set();
                             const stack = [i];
                             visited.add(i);
@@ -510,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-                break; // Safety break
+                break; 
             }
 
             showToast(`Guaranteed cycle graph ready!`, 'success');
@@ -527,7 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(`Generated a new '${type}' graph.`, 'success');
     }
 
-    // --- DRAWING & UI ---
     function setCanvasSize() {
         const container = canvas.parentElement;
         canvas.width = container.clientWidth;
@@ -597,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('nodeCount').addEventListener('input', e => {
             document.getElementById('nodeCountValue').textContent = e.target.value;
-            updateEdgeDensityForGraphType(); // ADD THIS LINE
+            updateEdgeDensityForGraphType();
         });
         document.getElementById('edgeDensity').addEventListener('input', e => document.getElementById('edgeDensityValue').textContent = e.target.value + '%');
         document.getElementById('animationSpeed').addEventListener('input', e => {
@@ -682,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nodeLabel = graph.nodes.find(n => n.id === nodeId)?.label || '?';
                 visitedContent.innerHTML += `<div class="ds-item">${nodeLabel}</div>`;
             });
-        } else { // Kruskal
+        } else { 
             if (state.disjointSets.length === 0) pqContent.innerHTML = '<div class="queue-item">Empty</div>';
             else state.disjointSets.forEach((set, i) => {
                 const setLabels = set.map(id => graph.nodes.find(n => n.id === id)?.label || '?').join(', ');
@@ -724,7 +707,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- STATE MANAGEMENT & RESETS ---
     function resetFull() {
         if (state.intervalId) clearInterval(state.intervalId);
         graph = { nodes: [], edges: [], mstEdges: [] };
@@ -757,7 +739,6 @@ document.addEventListener('DOMContentLoaded', () => {
         drawGraph();
     }
     
-    // --- EVENT HANDLERS & HELPERS ---
     function handleMouseDown(e) {
         const { x, y } = getMousePos(e);
         const clickedNode = getNodeAt(x, y);
@@ -810,7 +791,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // In the stepBackward function, replace the existing function with this:
     function stepBackward() {
         if (state.currentStep > 0) {
             if (state.isRunning) { 
@@ -819,7 +799,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             state.currentStep--;
             
-            // Reset the graph to initial state
             graph.edges.forEach(edge => edge.isInMST = false);
             graph.mstEdges = [];
             state.priorityQueue = [];
@@ -829,7 +808,6 @@ document.addEventListener('DOMContentLoaded', () => {
             state.consideringEdge = null;
             state.invalidEdges = [];
             
-            // Replay all steps up to the previous one
             for (let i = 0; i < state.currentStep; i++) {
                 const step = state.steps[i];
                 if (step.action === 'addEdge') {
@@ -849,7 +827,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (step.sortedEdges) state.sortedEdges = step.sortedEdges;
             }
             
-            // Execute the previous step to show the correct state
             if (state.currentStep > 0) {
                 const prevStep = state.steps[state.currentStep - 1];
                 document.getElementById('algorithm-steps-panel').innerHTML = prevStep.description;
@@ -878,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.classList.add('show'), 10);
         setTimeout(() => {
             toast.classList.remove('show');
-            // Remove the element after the transition is complete
+
             setTimeout(() => toast.remove(), 500); 
         }, 3000);
     }
@@ -887,5 +864,4 @@ document.addEventListener('DOMContentLoaded', () => {
     function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
     updateEdgeDensityForGraphType();
-
 });
