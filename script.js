@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const canvas = document.getElementById('graphCanvas');
     const ctx = canvas.getContext('2d');
+    const themeToggle = document.getElementById('themeToggle');
 
     let graph = { nodes: [], edges: [], mstEdges: [] };
 
@@ -22,6 +23,28 @@ document.addEventListener('DOMContentLoaded', () => {
         dragOffset: { x: 0, y: 0 },
         algorithmLocked: false,
     };
+    
+    const applyTheme = (theme) => {
+        if (theme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.checked = true;
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeToggle.checked = false;
+        }
+        if (ctx) {
+            drawGraph();
+        }
+    };
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener('change', () => {
+        const newTheme = themeToggle.checked ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
 
     setCanvasSize();
     window.addEventListener('resize', setCanvasSize);
@@ -35,37 +58,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const edgeDensityValue = document.getElementById('edgeDensityValue');
         
         if (graphType === 'cycle') {
-
             const nodeCount = parseInt(document.getElementById('nodeCount').value);
             let minDensity;
-            
-            if (nodeCount <= 5) minDensity = 40;
-            else if (nodeCount <= 8) minDensity = 35;
-            else if (nodeCount <= 12) minDensity = 30;
-            else minDensity = 25;
+
+            if (nodeCount <= 6) minDensity = 60;
+            else if (nodeCount <= 10) minDensity = 45;
+            else if (nodeCount <= 15) minDensity = 35;
+            else minDensity = 30;
             
             edgeDensitySlider.min = minDensity;
             
             if (parseInt(edgeDensitySlider.value) < minDensity) {
                 edgeDensitySlider.value = minDensity;
-                edgeDensityValue.textContent = minDensity + '%';
             }
-            
+            edgeDensityValue.textContent = edgeDensitySlider.value + '%';
             edgeDensitySlider.disabled = false;
-            showToast(`Guaranteed cycle mode: Minimum ${minDensity}% density required`, 'info');
             
         } else if (graphType === 'complete') {
             edgeDensitySlider.disabled = true;
             edgeDensitySlider.value = 100;
             edgeDensityValue.textContent = '100%';
         } else {
-
             edgeDensitySlider.min = 30;
             edgeDensitySlider.disabled = false;
-
         }
     }
-
 
     function primsAlgorithm() {
         const startNodeSelect = document.getElementById('startNodeSelect');
@@ -299,18 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resetFull();
         const type = document.getElementById('graphTypeSelect').value;
         const nodeCount = parseInt(document.getElementById('nodeCount').value);
-        const edgeDensitySlider = document.getElementById('edgeDensity');
-
+        
         if (type === 'cycle' && nodeCount < 3) {
-        nodeCount = 5;
-        document.getElementById('nodeCount').value = 5;
-        document.getElementById('nodeCountValue').textContent = '5';
-        showToast("Cycle graphs require at least 3 nodes. Using 5 nodes.", "warning");
+            nodeCount = 5;
+            document.getElementById('nodeCount').value = 5;
+            document.getElementById('nodeCountValue').textContent = '5';
+            showToast("Cycle graphs require at least 3 nodes. Using 5 nodes.", "warning");
         }
-        
-        edgeDensitySlider.disabled = type === 'complete';
-        
-        const edgeDensity = parseInt(edgeDensitySlider.value) / 100;
         
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -328,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (type === 'random') {
+            const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
             const parent = Array.from({ length: nodeCount }, (_, i) => i);
             const find = u => (parent[u] === u ? u : (parent[u] = find(parent[u])));
             const union = (u, v) => {
@@ -360,154 +373,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } else if (type === 'cycle') {
-
-            const nodeCount = parseInt(document.getElementById('nodeCount').value);
             const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
-            
-            const maxPossibleEdges = nodeCount * (nodeCount - 1) / 2;
-            const minRequiredEdges = Math.max(nodeCount + 2, Math.floor(nodeCount * 1.5));
-            const targetEdges = Math.max(
-                minRequiredEdges,
-                Math.floor(maxPossibleEdges * edgeDensity)
-            );
+            const maxEdges = (nodeCount * (nodeCount - 1)) / 2;
+            const targetEdgeCount = Math.floor(maxEdges * edgeDensity);
 
-            graph.edges = [];
-            graph.mstEdges = [];
-            
-            for (let i = 0; i < nodeCount; i++) {
-                const from = i;
-                const to = (i + 1) % nodeCount;
-                addEdge(from, to, Math.floor(Math.random() * 10) + 15); 
-            }
-
-            const chordCount = Math.max(2, Math.floor(nodeCount * 0.5));
-            for (let i = 0; i < chordCount; i++) {
-                const start = i;
-
-                const distances = [2, 3, Math.floor(nodeCount/2)];
-                const distance = distances[Math.floor(Math.random() * distances.length)];
-                const end = (start + distance) % nodeCount;
-                
-                if (start !== end && !graph.edges.some(e => 
-                    (e.from === start && e.to === end) || (e.from === end && e.to === start))) {
-                    addEdge(start, end, Math.floor(Math.random() * 3) + 1);
-                }
-            }
-
-            let attempts = 0;
-            while (graph.edges.length < targetEdges && attempts < 500) {
+            const parent = Array.from({ length: nodeCount }, (_, i) => i);
+            const find = u => (parent[u] === u ? u : (parent[u] = find(parent[u])));
+            const union = (u, v) => {
+                const rootU = find(u); const rootV = find(v);
+                if (rootU !== rootV) { parent[rootV] = rootU; return true; }
+                return false;
+            };
+             let edgesAdded = 0;
+            while (edgesAdded < nodeCount - 1) {
                 const u = Math.floor(Math.random() * nodeCount);
                 const v = Math.floor(Math.random() * nodeCount);
-                
-                if (u !== v && !graph.edges.some(e => 
-                    (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
-                    
-                    let createsCycle = false;
-                    
-                    const visited = new Set();
-                    const queue = [u];
-                    visited.add(u);
-                    
-                    while (queue.length > 0) {
-                        const current = queue.shift();
-                        graph.edges.forEach(edge => {
-                            if (edge.from === current && !visited.has(edge.to)) {
-                                if (edge.to === v) createsCycle = true;
-                                visited.add(edge.to);
-                                queue.push(edge.to);
-                            } else if (edge.to === current && !visited.has(edge.from)) {
-                                if (edge.from === v) createsCycle = true;
-                                visited.add(edge.from);
-                                queue.push(edge.from);
-                            }
-                        });
-                    }
-                    
-                    const weight = createsCycle ? 
-                        Math.floor(Math.random() * 5) + 1 : 
-                        Math.floor(Math.random() * 15) + 10; 
-                    
+                if (union(u, v)) {
+                    addEdge(u, v, Math.floor(Math.random() * 15) + 10);
+                    edgesAdded++;
+                }
+            }
+            
+            const numGuaranteedCycles = 2; 
+            for(let i=0; i < numGuaranteedCycles; i++) {
+                const u = Math.floor(Math.random() * nodeCount);
+                const v = Math.floor(Math.random() * nodeCount);
+
+                if (u !== v) {
+                    const weight = (i % 2 === 0) ? Math.floor(Math.random() * 5) + 1 : Math.floor(Math.random() * 10) + 25;
                     addEdge(u, v, weight);
                 }
-                attempts++;
             }
 
-            let lowWeightCycleCount = graph.edges.filter(edge => 
-                edge.weight <= 5 && 
-
-                (() => {
-                    const tempEdges = graph.edges.filter(e => e !== edge);
-                    const visited = new Set();
-                    const stack = [edge.from];
-                    visited.add(edge.from);
-                    let connects = false;
-                    
-                    while (stack.length > 0 && !connects) {
-                        const current = stack.pop();
-                        tempEdges.forEach(e => {
-                            if (e.from === current && !visited.has(e.to)) {
-                                if (e.to === edge.to) connects = true;
-                                visited.add(e.to);
-                                stack.push(e.to);
-                            } else if (e.to === current && !visited.has(e.from)) {
-                                if (e.from === edge.to) connects = true;
-                                visited.add(e.from);
-                                stack.push(e.from);
-                            }
-                        });
-                    }
-                    return connects;
-                })()
-            ).length;
-
-            while (lowWeightCycleCount < 3) {
-
-                for (let i = 0; i < nodeCount && lowWeightCycleCount < 3; i++) {
-                    for (let j = i + 2; j < nodeCount && lowWeightCycleCount < 3; j++) {
-                        if (!graph.edges.some(e => (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
-
-                            const visited = new Set();
-                            const stack = [i];
-                            visited.add(i);
-                            let connected = false;
-                            
-                            while (stack.length > 0 && !connected) {
-                                const current = stack.pop();
-                                graph.edges.forEach(edge => {
-                                    if (edge.from === current && !visited.has(edge.to)) {
-                                        if (edge.to === j) connected = true;
-                                        visited.add(edge.to);
-                                        stack.push(edge.to);
-                                    } else if (edge.to === current && !visited.has(edge.from)) {
-                                        if (edge.from === j) connected = true;
-                                        visited.add(edge.from);
-                                        stack.push(edge.from);
-                                    }
-                                });
-                            }
-                            
-                            if (connected) {
-                                addEdge(i, j, Math.floor(Math.random() * 3) + 1);
-                                lowWeightCycleCount++;
-                                break;
-                            }
-                        }
-                    }
-                }
-                break; 
+            while (graph.edges.length < targetEdgeCount && graph.edges.length < maxEdges) {
+                const u = Math.floor(Math.random() * nodeCount);
+                const v = Math.floor(Math.random() * nodeCount);
+                addEdge(u, v, Math.floor(Math.random() * 30) + 1);
             }
 
-            showToast(`Guaranteed cycle graph ready!`, 'success');
+            showToast(`Guaranteed cycle graph generated!`, 'success');
+        
         } else if (type === 'complete') {
             for (let i = 0; i < nodeCount; i++) {
                 for (let j = i + 1; j < nodeCount; j++) {
                     addEdge(i, j, Math.floor(Math.random() * 20) + 1);
                 }
             }
-            showToast('Complete graph generated. Edge Density is 100%.', 'info');
         }
         
         updateUIAfterGraphChange();
+        showToast(`Generated a new '${type}' graph.`, 'success');
     }
 
     function setCanvasSize() {
@@ -521,6 +436,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
         graph.edges.forEach(edge => {
             const fromNode = graph.nodes.find(n => n.id === edge.from);
             const toNode = graph.nodes.find(n => n.id === edge.to);
@@ -536,15 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (edge.isInMST) { ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 4; }
             else if (isInvalid) { ctx.strokeStyle = '#f44336'; ctx.lineWidth = 4; }
             else if (isConsidering) { ctx.strokeStyle = '#FF9800'; ctx.lineWidth = 4; }
-            else { ctx.strokeStyle = '#9C27B0'; ctx.lineWidth = 2; }
+            else { ctx.strokeStyle = isDarkMode ? '#9C27B0' : '#6a1b9a'; ctx.lineWidth = 2; }
             
             ctx.stroke();
             
             const midX = (fromNode.x + toNode.x) / 2;
             const midY = (fromNode.y + toNode.y) / 2;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            
+            ctx.fillStyle = isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)';
             ctx.fillRect(midX - 15, midY - 12, 30, 24);
-            ctx.fillStyle = 'white';
+            
+            ctx.fillStyle = isDarkMode ? 'white' : '#1e1e2f';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = 'bold 14px Arial';
@@ -602,6 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('graphTypeSelect').addEventListener('change', (e) => {
             updateEdgeDensityForGraphType();
+            if (e.target.value === 'cycle') {
+                showToast(`Minimum density enforced to guarantee cycles.`, 'info');
+            }
             updateAlgorithmUI();
         });
 
@@ -695,7 +617,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stepForward').disabled = !hasSteps || isAtEnd || state.isRunning;
         document.getElementById('pauseResume').disabled = !hasSteps || isAtEnd;
         document.getElementById('visualize').disabled = state.isRunning;
-        document.querySelectorAll('.algorithm-btn, #generateGraph, #graphTypeSelect, #nodeCount, #edgeDensity').forEach(el => el.disabled = state.algorithmLocked);
+        document.querySelectorAll('.algorithm-btn, #generateGraph, #graphTypeSelect, #nodeCount').forEach(el => el.disabled = state.algorithmLocked);
+        
+        const graphType = document.getElementById('graphTypeSelect').value;
+        document.getElementById('edgeDensity').disabled = state.algorithmLocked || graphType === 'complete';
 
         if (state.isRunning) {
             document.getElementById('pauseResume').textContent = 'Pause';
