@@ -508,7 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         updateUIAfterGraphChange();
-        showToast(`Generated a new '${type}' graph.`, 'success');
     }
 
     function setCanvasSize() {
