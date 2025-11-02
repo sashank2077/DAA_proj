@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graph Algorithm Visualizer</title>
+    <title>Advanced Graph Algorithm Visualizer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="toast-container"></div>
+
     <div class="container">
         <header>
-            <h1>Graph Algorithm Visualizer</h1>
-            <p class="subtitle">Visualize Minimum Spanning Tree algorithms with step-by-step animations</p>
+            <h1>Advanced Graph Algorithm Visualizer</h1>
+            <p class="subtitle">Interactively visualize Minimum Spanning Tree algorithms with detailed step-by-step explanations</p>
         </header>
         
         <div class="main-content">
@@ -21,6 +23,32 @@
                         <button class="algorithm-btn active" data-algo="prim" id="primBtn">Prim's Algorithm</button>
                         <button class="algorithm-btn" data-algo="kruskal" id="kruskalBtn">Kruskal's Algorithm</button>
                     </div>
+                </div>
+
+                <div class="control-group">
+                    <div id="primInfoPanel" class="algorithm-details">
+                        <h3>About Prim's Algorithm</h3>
+                        <p>A greedy algorithm that grows a single MST by adding the cheapest edge connecting a node in the tree to a node outside the tree.</p>
+                        <p><strong>Analogy:</strong> Powering one house, then finding the shortest wire to connect a new house to your powered network.</p>
+                        <ul>
+                            <li><strong>Time Complexity:</strong> O(E log V)</li>
+                            <li><strong>Best for:</strong> Dense graphs.</li>
+                        </ul>
+                    </div>
+                    <div id="kruskalInfoPanel" class="algorithm-details" style="display: none;">
+                        <h3>About Kruskal's Algorithm</h3>
+                        <p>A greedy algorithm that builds an MST by adding the lowest-weight edges that do not form a cycle.</p>
+                        <p><strong>Analogy:</strong> Building the cheapest bridges first, but skipping any that connect two islands already reachable from each other.</p>
+                        <ul>
+                            <li><strong>Time Complexity:</strong> O(E log E)</li>
+                            <li><strong>Best for:</strong> Sparse graphs.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="control-group" id="primOptions">
+                    <label for="startNodeSelect">Prim's Start Node:</label>
+                    <select id="startNodeSelect" class="custom-select"></select>
                 </div>
                 
                 <div class="control-group">
@@ -34,119 +62,89 @@
                         
                         <div class="control-row">
                             <label for="edgeDensity">Edge Density:</label>
-                            <input type="range" id="edgeDensity" min="40" max="80" value="60">
+                            <input type="range" id="edgeDensity" min="30" max="100" value="60">
                             <span id="edgeDensityValue">60%</span>
                         </div>
                         
                         <div class="button-group">
-                            <button class="action-btn generate-btn" id="generateGraph">Generate Graph</button>
-                            <button class="action-btn visualize-btn" id="visualize">Visualize</button>
-                            <button class="action-btn reset-btn" id="reset">Reset</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="control-group">
-                    <h2>Animation Controls</h2>
-                    <div class="graph-controls">
-                        <div class="control-row">
-                            <label for="animationSpeed">Animation Speed:</label>
-                            <input type="range" id="animationSpeed" min="1" max="10" value="5">
-                            <span id="animationSpeedValue">Medium</span>
-                        </div>
-                        
-                        <div class="animation-status" id="animationStatus">
-                            Ready to visualize
-                        </div>
-                        
-                        <div class="button-group">
-                            <button class="action-btn" id="stepBackward" disabled>Step Backward</button>
-                            <button class="action-btn" id="stepForward" disabled>Step Forward</button>
-                            <button class="action-btn" id="pauseResume" disabled>Pause</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="info-panel">
-                    <div class="info-title" id="currentAlgorithmTitle">Prim's Algorithm</div>
-                    <div class="info-content" id="algorithmInfo">
-                        <p><strong>Prim's Algorithm:</strong> Builds MST by growing from a starting node, always adding the minimum weight edge that connects to a new node.</p>
-                        <div class="complexity-info">
-                            <strong>Time Complexity:</strong> O(E log V) with priority queue<br>
-                            <strong>Space Complexity:</strong> O(V + E)<br>
-                            <strong>Data Structure:</strong> Priority Queue (Min-Heap)
+                             <select id="graphTypeSelect" class="custom-select">
+                                <option value="random">Random Connected Graph</option>
+                                <option value="cycle">Guaranteed Cycle</option>
+                                <option value="complete">Complete Graph</option>
+                            </select>
+                            <button class="action-btn generate-btn" id="generateGraph">Generate New Graph</button>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="visualization-area">
-                <h2>Visualization</h2>
-                <div class="canvas-container">
-                    <canvas id="graphCanvas"></canvas>
-                </div>
-                
-                <div class="stats-panel">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalNodes">0</div>
-                        <div class="stat-label">Total Nodes</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalEdges">0</div>
-                        <div class="stat-label">Total Edges</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="mstWeight">0</div>
-                        <div class="stat-label">MST Weight</div>
-                    </div>
-                </div>
-                
-                <div class="data-structures">
-                    <div class="ds-panel" id="priorityQueuePanel">
-                        <div class="ds-title" id="dsTitle">Priority Queue (Min-Heap)</div>
-                        <div class="ds-content priority-queue-content" id="priorityQueueContent">
-                            <div class="queue-item">Queue Empty</div>
+                <div class="vis-main">
+                    <div class="vis-left">
+                        <h2>Visualization</h2>
+                        <div class="canvas-container">
+                            <canvas id="graphCanvas"></canvas>
+                        </div>
+                        
+                        <div class="animation-controls-panel">
+                             <div class="control-row">
+                                <label for="animationSpeed">Animation Speed:</label>
+                                <input type="range" id="animationSpeed" min="1" max="10" value="5">
+                                <span id="animationSpeedValue">Medium</span>
+                            </div>
+                            <div class="animation-status" id="animationStatus">Ready to visualize</div>
+                            <div class="button-group-row">
+                                <div class="button-group">
+                                    <button class="action-btn visualize-btn" id="visualize">Visualize</button>
+                                    <button class="action-btn" id="pauseResume" disabled>Pause</button>
+                                    <button class="action-btn reset-btn" id="reset">Reset All</button>
+                                </div>
+                                <div class="button-group">
+                                    <button class="action-btn" id="stepBackward" disabled>Step Backward</button>
+                                    <button class="action-btn" id="stepForward" disabled>Step Forward</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="ds-panel" id="visitedNodesPanel">
-                        <div class="ds-title" id="visitedTitle">Visited Nodes</div>
-                        <div class="ds-content" id="visitedNodesContent"></div>
-                    </div>
-                    
-                    <div class="ds-panel" id="mstEdgesPanel">
-                        <div class="ds-title">MST Edges</div>
-                        <div class="ds-content" id="mstEdgesContent"></div>
-                    </div>
-                </div>
-                
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color node-color"></div>
-                        <span>Node</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color edge-color"></div>
-                        <span>Edge</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color mst-edge-color"></div>
-                        <span>MST Edge</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color consider-edge-color"></div>
-                        <span>Considering</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color cycle-edge-color"></div>
-                        <span>Cycle/Invalid</span>
-                    </div>
-                </div>
-                
-                <div class="info-panel" style="margin-top: 20px;">
-                    <div class="info-title">Algorithm Steps</div>
-                    <div class="info-content" id="stepInfo">
-                        Click "Visualize" to start the algorithm visualization.
+
+                    <div class="vis-right">
+                        <!-- All right-side content is now in this column -->
+                        <div class="info-panel steps-panel">
+                            <div class="info-title">Algorithm Steps</div>
+                            <div class="info-content" id="algorithm-steps-panel">
+                                Generate a graph, then click "Visualize".
+                            </div>
+                        </div>
+
+                        <div class="stats-panel">
+                            <div class="stat-item"><div class="stat-value" id="totalNodes">0</div><div class="stat-label">Nodes</div></div>
+                            <div class="stat-item"><div class="stat-value" id="totalEdges">0</div><div class="stat-label">Edges</div></div>
+                            <div class="stat-item"><div class="stat-value" id="mstWeight">0</div><div class="stat-label">MST Weight</div></div>
+                        </div>
+
+                        <div class="data-structures">
+                            <div class="ds-panel" id="priorityQueuePanel">
+                                <div class="ds-title" id="dsTitle">Priority Queue</div>
+                                <div class="ds-content priority-queue-content" id="priorityQueueContent"></div>
+                            </div>
+                            <div class="ds-panel" id="visitedNodesPanel">
+                                <div class="ds-title" id="visitedTitle">Visited Nodes</div>
+                                <div class="ds-content" id="visitedNodesContent"></div>
+                            </div>
+                            <div class="ds-panel" id="mstEdgesPanel">
+                                <div class="ds-title">MST Edges</div>
+                                <div class="ds-content" id="mstEdgesContent"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-color node-unvisited-color"></div><span>Unvisited</span></div>
+                            <div class="legend-item"><div class="legend-color node-visited-color"></div><span>Visited</span></div>
+                            <div class="legend-item"><div class="legend-color edge-color"></div><span>Edge</span></div>
+                            <div class="legend-item"><div class="legend-color mst-edge-color"></div><span>MST Edge</span></div>
+                            <div class="legend-item"><div class="legend-color consider-edge-color"></div><span>Considering</span></div>
+                            <div class="legend-item"><div class="legend-color cycle-edge-color"></div><span>Cycle</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
