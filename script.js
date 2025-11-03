@@ -321,10 +321,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // GRAPH GENERATION
+    function countPrimSteps() {
+        if (graph.nodes.length === 0) return 0;
+        const startNodeId = graph.nodes[0].id;
+        const steps = [];
+        const visited = new Set();
+        const edges = [...graph.edges];
+        visited.add(startNodeId);
+        const priorityQueue = [];
+        edges.forEach(edge => {
+            if ((edge.from === startNodeId && !visited.has(edge.to)) || (edge.to === startNodeId && !visited.has(edge.from))) {
+                priorityQueue.push({ edge, weight: edge.weight });
+            }
+        });
+        priorityQueue.sort((a, b) => a.weight - b.weight);
+        steps.push({});
+        while (visited.size < graph.nodes.length && priorityQueue.length > 0) {
+            const minEdgeItem = priorityQueue.shift();
+            const minEdge = minEdgeItem.edge;
+            steps.push({});
+            const fromVisited = visited.has(minEdge.from);
+            const toVisited = visited.has(minEdge.to);
+            if ((fromVisited && !toVisited) || (!fromVisited && toVisited)) {
+                const newNode = fromVisited ? minEdge.to : minEdge.from;
+                steps.push({});
+                visited.add(newNode);
+                edges.forEach(edge => {
+                    const fromNew = (edge.from === newNode && !visited.has(edge.to));
+                    const toNew = (edge.to === newNode && !visited.has(edge.from));
+                    if (fromNew || toNew) {
+                         priorityQueue.push({ edge, weight: edge.weight });
+                    }
+                });
+                priorityQueue.sort((a, b) => a.weight - b.weight);
+                steps.push({});
+            } else {
+                steps.push({});
+            }
+        }
+        steps.push({});
+        return steps.length;
+    }
+
+    function countKruskalSteps() {
+        if (graph.nodes.length === 0) return 0;
+        const steps = [];
+        const edges = [...graph.edges];
+        edges.sort((a, b) => a.weight - b.weight);
+        const maxNodeId = graph.nodes.reduce((max, node) => Math.max(max, node.id), 0);
+        const parent = Array.from({ length: maxNodeId + 1 }, (_, i) => i);
+        const find = u => (parent[u] === u ? u : (parent[u] = find(parent[u])));
+        const union = (u, v) => {
+            const rootU = find(u);
+            const rootV = find(v);
+            if (rootU !== rootV) {
+                parent[rootV] = rootU;
+                return true;
+            }
+            return false;
+        };
+        steps.push({});
+        let edgesAdded = 0;
+        for (let i = 0; i < edges.length; i++) {
+            if (edgesAdded >= graph.nodes.length - 1) break;
+            const edge = edges[i];
+            steps.push({});
+            if (union(edge.from, edge.to)) {
+                edgesAdded++;
+                steps.push({});
+                steps.push({});
+            } else {
+                steps.push({});
+            }
+        }
+        steps.push({});
+        return steps.length;
+    }
+
     function generateGraph() {
         resetFull();
         const type = document.getElementById('graphTypeSelect').value;
-        const nodeCount = parseInt(document.getElementById('nodeCount').value);
+        let nodeCount = parseInt(document.getElementById('nodeCount').value);
         
         if (type === 'cycle' && nodeCount < 3) {
             nodeCount = 5;
@@ -333,73 +410,43 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast("Cycle graphs require at least 3 nodes. Using 5 nodes.", "warning");
         }
         
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = Math.min(canvas.width, canvas.height) * 0.35;
-        
-        for (let i = 0; i < nodeCount; i++) {
-            const angle = (2 * Math.PI * i) / nodeCount;
-            graph.nodes.push({ id: i, x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle), label: String.fromCharCode(65 + i) });
-        }
-
-        const addEdge = (u, v, weight) => {
-             if (u !== v && !graph.edges.some(e => (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
-                graph.edges.push({ from: u, to: v, weight, isInMST: false });
-            }
-        };
-
-        if (type === 'random') {
-            const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
-            const parent = Array.from({ length: nodeCount }, (_, i) => i);
-            const find = u => (parent[u] === u ? u : (parent[u] = find(parent[u])));
-            const union = (u, v) => {
-                const rootU = find(u);
-                const rootV = find(v);
-                if (rootU !== rootV) {
-                    parent[rootV] = rootU;
-                    return true;
-                }
-                return false;
-            };
+        const generateCycleGraphLogic = () => {
+            graph.nodes = [];
+            graph.edges = [];
+            const current_nodeCount = parseInt(document.getElementById('nodeCount').value);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
             
-            let sets = nodeCount;
-            while (sets > 1) {
-                const u = Math.floor(Math.random() * nodeCount);
-                const v = Math.floor(Math.random() * nodeCount);
-                if (find(u) !== find(v)) {
-                    addEdge(u, v, Math.floor(Math.random() * 20) + 1);
-                    union(u, v);
-                    sets--;
+            for (let i = 0; i < current_nodeCount; i++) {
+                const angle = (2 * Math.PI * i) / current_nodeCount;
+                graph.nodes.push({ id: i, x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle), label: String.fromCharCode(65 + i) });
+            }
+
+            const addEdge = (u, v, weight) => {
+                 if (u !== v && !graph.edges.some(e => (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
+                    graph.edges.push({ from: u, to: v, weight, isInMST: false });
                 }
-            }
+            };
 
-            const maxEdges = nodeCount * (nodeCount - 1) / 2;
-            const targetEdges = Math.floor(maxEdges * edgeDensity);
-            while (graph.edges.length < targetEdges && graph.edges.length < maxEdges) {
-                const u = Math.floor(Math.random() * nodeCount);
-                const v = Math.floor(Math.random() * nodeCount);
-                addEdge(u, v, Math.floor(Math.random() * 20) + 1);
-            }
-
-        } else if (type === 'cycle') {
             const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
-            const maxEdges = (nodeCount * (nodeCount - 1)) / 2;
+            const maxEdges = (current_nodeCount * (current_nodeCount - 1)) / 2;
             const targetEdgeCount = Math.floor(maxEdges * edgeDensity);
 
-            for (let i = 0; i < nodeCount; i++) {
+            for (let i = 0; i < current_nodeCount; i++) {
                 const u = i;
-                const v = (i + 1) % nodeCount;
+                const v = (i + 1) % current_nodeCount;
                 const weight = 15 + Math.floor(Math.random() * 10) + (i * 2);
                 addEdge(u, v, weight);
             }
 
             const trapEdges = [];
-            const baseTrapCount = nodeCount <= 7 ? Math.max(3, Math.floor(nodeCount * 0.8)) : Math.max(2, Math.floor(nodeCount / 3));
-            const trapCount = Math.min(baseTrapCount, Math.floor((targetEdgeCount - nodeCount) * 0.7));
+            const baseTrapCount = current_nodeCount <= 7 ? Math.max(3, Math.floor(current_nodeCount * 0.8)) : Math.max(2, Math.floor(current_nodeCount / 3));
+            const trapCount = Math.min(baseTrapCount, Math.floor((targetEdgeCount - current_nodeCount) * 0.7));
             
             for (let gap = 2; gap <= 3; gap++) {
-                for (let i = 0; i < nodeCount && trapEdges.length < trapCount; i++) {
-                    const j = (i + gap) % nodeCount;
+                for (let i = 0; i < current_nodeCount && trapEdges.length < trapCount; i++) {
+                    const j = (i + gap) % current_nodeCount;
                     if (i !== j && !graph.edges.some(e => 
                         (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
                         trapEdges.push({ from: i, to: j });
@@ -416,8 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (remainingNeeded > 0) {
                 const allPossibleEdges = [];
-                for (let i = 0; i < nodeCount; i++) {
-                    for (let j = i + 1; j < nodeCount; j++) {
+                for (let i = 0; i < current_nodeCount; i++) {
+                    for (let j = i + 1; j < current_nodeCount; j++) {
                         if (!graph.edges.some(e => 
                             (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
                             allPossibleEdges.push({ from: i, to: j });
@@ -436,11 +483,75 @@ document.addEventListener('DOMContentLoaded', () => {
                     addEdge(edge.from, edge.to, weight);
                 }
             }
-        
-        } else if (type === 'complete') {
+        };
+
+        if (type === 'cycle') {
+            let attempts = 0;
+            let primSteps, kruskalSteps;
+            do {
+                generateCycleGraphLogic();
+                primSteps = countPrimSteps();
+                kruskalSteps = countKruskalSteps();
+                attempts++;
+                if (attempts > 50) {
+                    showToast("Could not generate a complex cycle graph. Using last attempt.", "warning");
+                    break;
+                }
+            } while (primSteps < 16 || kruskalSteps < 16);
+
+        } else {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+            
             for (let i = 0; i < nodeCount; i++) {
-                for (let j = i + 1; j < nodeCount; j++) {
-                    addEdge(i, j, Math.floor(Math.random() * 20) + 1);
+                const angle = (2 * Math.PI * i) / nodeCount;
+                graph.nodes.push({ id: i, x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle), label: String.fromCharCode(65 + i) });
+            }
+
+            const addEdge = (u, v, weight) => {
+                 if (u !== v && !graph.edges.some(e => (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
+                    graph.edges.push({ from: u, to: v, weight, isInMST: false });
+                }
+            };
+
+            if (type === 'random') {
+                const edgeDensity = parseInt(document.getElementById('edgeDensity').value) / 100;
+                const parent = Array.from({ length: nodeCount }, (_, i) => i);
+                const find = u => (parent[u] === u ? u : (parent[u] = find(parent[u])));
+                const union = (u, v) => {
+                    const rootU = find(u);
+                    const rootV = find(v);
+                    if (rootU !== rootV) {
+                        parent[rootV] = rootU;
+                        return true;
+                    }
+                    return false;
+                };
+                
+                let sets = nodeCount;
+                while (sets > 1) {
+                    const u = Math.floor(Math.random() * nodeCount);
+                    const v = Math.floor(Math.random() * nodeCount);
+                    if (find(u) !== find(v)) {
+                        addEdge(u, v, Math.floor(Math.random() * 20) + 1);
+                        union(u, v);
+                        sets--;
+                    }
+                }
+
+                const maxEdges = nodeCount * (nodeCount - 1) / 2;
+                const targetEdges = Math.floor(maxEdges * edgeDensity);
+                while (graph.edges.length < targetEdges && graph.edges.length < maxEdges) {
+                    const u = Math.floor(Math.random() * nodeCount);
+                    const v = Math.floor(Math.random() * nodeCount);
+                    addEdge(u, v, Math.floor(Math.random() * 20) + 1);
+                }
+            } else if (type === 'complete') {
+                for (let i = 0; i < nodeCount; i++) {
+                    for (let j = i + 1; j < nodeCount; j++) {
+                        addEdge(i, j, Math.floor(Math.random() * 20) + 1);
+                    }
                 }
             }
         }
@@ -471,8 +582,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.moveTo(fromNode.x, fromNode.y);
             ctx.lineTo(toNode.x, toNode.y);
             
-            const isInvalid = state.invalidEdges.includes(edge);
-            const isConsidering = state.consideringEdge === edge;
+            const isInvalid = state.invalidEdges.some(e => e.from === edge.from && e.to === edge.to);
+            const isConsidering = state.consideringEdge && state.consideringEdge.from === edge.from && state.consideringEdge.to === edge.to;
 
             if (edge.isInMST) { ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 4; }
             else if (isInvalid) { ctx.strokeStyle = '#f44336'; ctx.lineWidth = 4; }
