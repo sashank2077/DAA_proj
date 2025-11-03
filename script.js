@@ -56,31 +56,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const graphType = document.getElementById('graphTypeSelect').value;
         const edgeDensitySlider = document.getElementById('edgeDensity');
         const edgeDensityValue = document.getElementById('edgeDensityValue');
+        const nodeCount = parseInt(document.getElementById('nodeCount').value);
+        const startNodeSelect = document.getElementById('startNodeSelect');
+
+        startNodeSelect.disabled = (graphType === 'cycle' || state.algorithmLocked);
         
         if (graphType === 'cycle') {
-            const nodeCount = parseInt(document.getElementById('nodeCount').value);
             let minDensity;
-
-            if (nodeCount <= 6) minDensity = 60;
+            if (nodeCount <= 5) minDensity = 70;
+            else if (nodeCount == 6 ) minDensity = 60;
             else if (nodeCount <= 10) minDensity = 45;
-            else if (nodeCount <= 15) minDensity = 35;
-            else minDensity = 30;
+            else if (nodeCount <= 15) minDensity = 30;
+            else minDensity = 25;
             
             edgeDensitySlider.min = minDensity;
             
-            if (parseInt(edgeDensitySlider.value) < minDensity) {
-                edgeDensitySlider.value = minDensity;
-                edgeDensityValue.textContent = minDensity + '%';
-            }
+            edgeDensitySlider.value = minDensity;
+            edgeDensityValue.textContent = minDensity + '%';
+            edgeDensitySlider.dispatchEvent(new Event('input')); 
             edgeDensitySlider.disabled = false;
             
         } else if (graphType === 'complete') {
             edgeDensitySlider.disabled = true;
             edgeDensitySlider.value = 100;
             edgeDensityValue.textContent = '100%';
+            edgeDensitySlider.dispatchEvent(new Event('input'));
         } else {
             edgeDensitySlider.min = 30;
             edgeDensitySlider.disabled = false;
+
+            if (parseInt(edgeDensitySlider.value) < 30) {
+                 edgeDensitySlider.value = 30;
+                 edgeDensityValue.textContent = '30%';
+                 edgeDensitySlider.dispatchEvent(new Event('input'));
+            }
         }
     }
 
@@ -377,87 +386,56 @@ document.addEventListener('DOMContentLoaded', () => {
             const maxEdges = (nodeCount * (nodeCount - 1)) / 2;
             const targetEdgeCount = Math.floor(maxEdges * edgeDensity);
 
-            const mstEdges = [];
-
-            for (let i = 1; i < nodeCount; i++) {
-                const weight = 10 + (i * 2);
-                mstEdges.push({ from: 0, to: i, weight });
+            for (let i = 0; i < nodeCount; i++) {
+                const u = i;
+                const v = (i + 1) % nodeCount;
+                const weight = 15 + Math.floor(Math.random() * 10) + (i * 2);
+                addEdge(u, v, weight);
             }
 
             const trapEdges = [];
+            const baseTrapCount = nodeCount <= 7 ? Math.max(3, Math.floor(nodeCount * 0.8)) : Math.max(2, Math.floor(nodeCount / 3));
+            const trapCount = Math.min(baseTrapCount, Math.floor((targetEdgeCount - nodeCount) * 0.7));
             
-            if (nodeCount >= 5 && nodeCount <= 9) {
-                trapEdges.push({ from: 1, to: nodeCount - 1, weight: 1 });
-                trapEdges.push({ from: 2, to: nodeCount - 1, weight: 2 });
-                if (nodeCount >= 7) {
-                    trapEdges.push({ from: 1, to: nodeCount - 2, weight: 3 });
-                }
-            } else {
-                trapEdges.push({ from: 1, to: nodeCount - 1, weight: 1 });
-                trapEdges.push({ from: 2, to: nodeCount - 1, weight: 2 });
-                trapEdges.push({ from: 1, to: Math.floor(nodeCount * 0.7), weight: 3 });
-                trapEdges.push({ from: 3, to: nodeCount - 2, weight: 4 });
-            }
-
-            mstEdges.forEach(edge => {
-                addEdge(edge.from, edge.to, edge.weight);
-            });
-
-            trapEdges.forEach(trap => {
-                addEdge(trap.from, trap.to, trap.weight);
-            });
-
-            const safeHighWeightEdges = [];
-            
-            for (let i = 1; i < nodeCount; i++) {
-                for (let j = i + 2; j < nodeCount; j++) {
-                    if (safeHighWeightEdges.length < targetEdgeCount - mstEdges.length - trapEdges.length) {
-                        const isSafe = !trapEdges.some(trap => 
-                            (trap.from === i && trap.to === j) || (trap.from === j && trap.to === i)
-                        );
-                        if (isSafe) {
-                            safeHighWeightEdges.push({ from: i, to: j, weight: Math.floor(Math.random() * 20) + 30 });
-                        }
+            for (let gap = 2; gap <= 3; gap++) {
+                for (let i = 0; i < nodeCount && trapEdges.length < trapCount; i++) {
+                    const j = (i + gap) % nodeCount;
+                    if (i !== j && !graph.edges.some(e => 
+                        (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
+                        trapEdges.push({ from: i, to: j });
                     }
                 }
             }
 
-            safeHighWeightEdges.forEach(edge => {
-                addEdge(edge.from, edge.to, edge.weight);
+            trapEdges.slice(0, trapCount).forEach(trap => {
+                const weight = Math.floor(Math.random() * 5) + 1;
+                addEdge(trap.from, trap.to, weight);
             });
 
-            while (graph.edges.length < targetEdgeCount && graph.edges.length < maxEdges) {
-                const u = Math.floor(Math.random() * nodeCount);
-                const v = Math.floor(Math.random() * nodeCount);
-                
-                if (u !== v && !graph.edges.some(e => 
-                    (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
-                    
-                    const fillerWeight = Math.floor(Math.random() * 25) + 40;
-                    addEdge(u, v, fillerWeight);
-                }
-            }
-
-            if (nodeCount >= 10) {
-                const currentDensity = graph.edges.length / maxEdges;
-                const minDensity = 0.5; 
-                
-                if (currentDensity < minDensity) {
-                    while (graph.edges.length / maxEdges < minDensity && graph.edges.length < maxEdges) {
-                        const u = Math.floor(Math.random() * nodeCount);
-                        const v = Math.floor(Math.random() * nodeCount);
-                        
-                        if (u !== v && !graph.edges.some(e => 
-                            (e.from === u && e.to === v) || (e.from === v && e.to === u))) {
-                            
-                            const extraWeight = Math.floor(Math.random() * 30) + 50;
-                            addEdge(u, v, extraWeight);
+            const remainingNeeded = targetEdgeCount - graph.edges.length;
+            
+            if (remainingNeeded > 0) {
+                const allPossibleEdges = [];
+                for (let i = 0; i < nodeCount; i++) {
+                    for (let j = i + 1; j < nodeCount; j++) {
+                        if (!graph.edges.some(e => 
+                            (e.from === i && e.to === j) || (e.from === j && e.to === i))) {
+                            allPossibleEdges.push({ from: i, to: j });
                         }
                     }
                 }
+
+                for (let i = allPossibleEdges.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allPossibleEdges[i], allPossibleEdges[j]] = [allPossibleEdges[j], allPossibleEdges[i]];
+                }
+
+                for (let i = 0; i < Math.min(remainingNeeded, allPossibleEdges.length); i++) {
+                    const edge = allPossibleEdges[i];
+                    const weight = Math.floor(Math.random() * 30) + 20;
+                    addEdge(edge.from, edge.to, weight);
+                }
             }
-            
-            showToast(`The trap is set! A cycle will be tested.`, 'success');
         
         } else if (type === 'complete') {
             for (let i = 0; i < nodeCount; i++) {
@@ -565,12 +543,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stepBackward').addEventListener('click', stepBackward);
         document.getElementById('pauseResume').addEventListener('click', togglePauseResume);
 
-        document.getElementById('graphTypeSelect').addEventListener('change', (e) => {
+        document.getElementById('graphTypeSelect').addEventListener('change', () => {
             updateEdgeDensityForGraphType();
-            if (e.target.value === 'cycle') {
-                showToast(`Minimum density enforced to guarantee cycles.`, 'info');
-            }
-            updateAlgorithmUI();
+            generateGraph();
         });
 
         canvas.addEventListener('mousedown', handleMouseDown);
@@ -590,6 +565,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dsTitle').textContent = selectedAlgo === 'prim' ? 'Priority Queue' : 'Disjoint Sets';
         document.getElementById('visitedTitle').textContent = selectedAlgo === 'prim' ? 'Visited Nodes' : 'Sorted Edges';
         document.getElementById('primOptions').style.display = selectedAlgo === 'prim' ? 'flex' : 'none';
+
+        updateEdgeDensityForGraphType();
     }
     
     function updateUIAfterGraphChange() {
@@ -667,6 +644,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const graphType = document.getElementById('graphTypeSelect').value;
         document.getElementById('edgeDensity').disabled = state.algorithmLocked || graphType === 'complete';
+        document.getElementById('startNodeSelect').disabled = state.algorithmLocked || graphType === 'cycle';
+
 
         if (state.isRunning) {
             document.getElementById('pauseResume').textContent = 'Pause';
