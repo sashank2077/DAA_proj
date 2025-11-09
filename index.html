@@ -9,6 +9,16 @@
 <body>
     <div id="toast-container"></div>
 
+    <div id="custom-modal-overlay" class="hidden">
+        <div id="custom-modal">
+            <p id="modal-text">Are you sure?</p>
+            <div class="modal-buttons">
+                <button id="modal-confirm-btn" class="action-btn">Confirm</button>
+                <button id="modal-cancel-btn" class="action-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>Prim's and Kruskal's Algorithm Visualizer</h1>
@@ -38,29 +48,77 @@
                     <select id="startNodeSelect" class="custom-select"></select>
                 </div>
                 
+                <div id="generative-mode-controls">
+                    <div class="control-group">
+                        <h2>Graph Controls</h2>
+                        <div class="graph-controls">
+                            <div class="control-row">
+                                <label for="nodeCount">Number of Nodes:</label>
+                                <input type="range" id="nodeCount" min="5" max="20" value="5">
+                                <span id="nodeCountValue">5</span>
+                            </div>
+                            
+                            <div class="control-row">
+                                <label for="edgeDensity">Edge Density:</label>
+                                <input type="range" id="edgeDensity" min="30" max="100" value="60">
+                                <span id="edgeDensityValue">60%</span>
+                            </div>
+                            
+                            <div class="button-group">
+                                <select id="graphTypeSelect" class="custom-select">
+                                    <option value="random">Random Connected Graph</option>
+                                    <option value="cycle">Guaranteed Cycle</option>
+                                    <option value="complete">Complete Graph</option>
+                                </select>
+                                <button class="action-btn generate-btn" id="generateGraph">Generate New Graph</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="user-mode-controls" class="hidden">
+                    <div class="control-group">
+                        <h2>User Controls</h2>
+                        <div class="user-controls-panel">
+                            <div class="button-group-row">
+                                <button class="action-btn" id="undoBtn">Undo</button>
+                                <button class="action-btn" id="redoBtn">Redo</button>
+                            </div>
+                            <div class="button-group-row">
+                                <button class="action-btn edit-btn" id="editWeightBtn">Edit Weight</button>
+                                <button class="action-btn delete-btn" id="deleteEdgeBtn">Delete Edge</button>
+                                <button class="action-btn delete-btn" id="deleteNodeBtn">Delete Node</button>
+                                <button class="action-btn reset-btn" id="clearGraphBtn">Clear Graph</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="control-group">
-                    <h2>Graph Controls</h2>
-                    <div class="graph-controls">
-                        <div class="control-row">
-                            <label for="nodeCount">Number of Nodes:</label>
-                            <input type="range" id="nodeCount" min="5" max="20" value="8">
-                            <span id="nodeCountValue">8</span>
+                    <h2>Animation Speed</h2>
+                    <div class="animation-speed-panel">
+                        <div class="speed-label-container">
+                            <label for="animationSpeed">Speed</label>
+                            <span id="animationSpeedValue">Normal</span>
                         </div>
-                        
-                        <div class="control-row">
-                            <label for="edgeDensity">Edge Density:</label>
-                            <input type="range" id="edgeDensity" min="30" max="100" value="60">
-                            <span id="edgeDensityValue">60%</span>
-                        </div>
-                        
-                        <div class="button-group">
-                            <select id="graphTypeSelect" class="custom-select">
-                                <option value="random">Random Connected Graph</option>
-                                <option value="cycle">Guaranteed Cycle</option>
-                                <option value="complete">Complete Graph</option>
-                            </select>
-                            <button class="action-btn generate-btn" id="generateGraph">Generate New Graph</button>
-                        </div>
+                        <input type="range" id="animationSpeed" min="1" max="10" value="5">
+                    </div>
+                </div>
+                
+                <div class="stats-panel">
+                    <div class="stat-item"><div class="stat-value" id="totalNodes">0</div><div class="stat-label">Nodes</div></div>
+                    <div class="stat-item"><div class="stat-value" id="totalEdges">0</div><div class="stat-label">Edges</div></div>
+                    <div class="stat-item"><div class="stat-value" id="mstWeight">0</div><div class="stat-label">MST Weight</div></div>
+                </div>
+
+                <div class="control-group">
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color node-unvisited-color"></div><span>Unvisited</span></div>
+                        <div class="legend-item"><div class="legend-color node-visited-color"></div><span>Visited</span></div>
+                        <div class="legend-item"><div class="legend-color edge-color"></div><span>Edge</span></div>
+                        <div class="legend-item"><div class="legend-color mst-edge-color"></div><span>MST Edge</span></div>
+                        <div class="legend-item"><div class="legend-color consider-edge-color"></div><span>Considering</span></div>
+                        <div class="legend-item"><div class="legend-color cycle-edge-color"></div><span>Cycle</span></div>
                     </div>
                 </div>
             </div>
@@ -68,28 +126,30 @@
             <div class="visualization-area">
                 <div class="vis-main">
                     <div class="vis-left">
-                        <h2>Visualization</h2>
+                        <div class="vis-header">
+                            <h2>Visualization</h2>
+                            <div class="mode-switch-wrapper">
+                                <span class="mode-label">Generative</span>
+                                <label class="theme-switch" for="modeToggle">
+                                    <input type="checkbox" id="modeToggle" />
+                                    <div class="slider round"></div>
+                                </label>
+                                <span class="mode-label">User</span>
+                            </div>
+                        </div>
                         <div class="canvas-container">
                             <canvas id="graphCanvas"></canvas>
+                            <div id="fixed-edge-info" class="hidden"></div>
                         </div>
                         
                         <div class="animation-controls-panel">
-                            <div class="control-row">
-                                <label for="animationSpeed">Animation Speed:</label>
-                                <input type="range" id="animationSpeed" min="1" max="10" value="5">
-                                <span id="animationSpeedValue">Medium</span>
-                            </div>
                             <div class="animation-status" id="animationStatus">Ready to visualize</div>
                             <div class="button-group-row">
-                                <div class="button-group">
-                                    <button class="action-btn visualize-btn" id="visualize">Visualize</button>
-                                    <button class="action-btn" id="pauseResume" disabled>Pause</button>
-                                    <button class="action-btn reset-btn" id="reset">Reset All</button>
-                                </div>
-                                <div class="button-group">
-                                    <button class="action-btn" id="stepBackward" disabled>Step Backward</button>
-                                    <button class="action-btn" id="stepForward" disabled>Step Forward</button>
-                                </div>
+                                <button class="action-btn visualize-btn" id="visualize">Visualize</button>
+                                <button class="action-btn" id="pauseResume" disabled>Pause</button>
+                                <button class="action-btn" id="stepBackward" disabled>◀</button>
+                                <button class="action-btn" id="stepForward" disabled>▶</button>
+                                <button class="action-btn reset-btn" id="reset">Reset</button>
                             </div>
                         </div>
                     </div>
@@ -100,12 +160,8 @@
                             <div class="info-content" id="algorithm-steps-panel">
                                 Generate a graph, then click "Visualize".
                             </div>
-                        </div>
-
-                        <div class="stats-panel">
-                            <div class="stat-item"><div class="stat-value" id="totalNodes">0</div><div class="stat-label">Nodes</div></div>
-                            <div class="stat-item"><div class="stat-value" id="totalEdges">0</div><div class="stat-label">Edges</div></div>
-                            <div class="stat-item"><div class="stat-value" id="mstWeight">0</div><div class="stat-label">MST Weight</div></div>
+                            <h3 class="info-title pseudo-title">Pseudocode</h3>
+                            <div id="pseudocode-display"></div>
                         </div>
 
                         <div class="data-structures">
@@ -113,26 +169,56 @@
                                 <div class="ds-title" id="dsTitle">Priority Queue</div>
                                 <div class="ds-content priority-queue-content" id="priorityQueueContent"></div>
                             </div>
-                            <div class="ds-panel" id="visitedNodesPanel">
-                                <div class="ds-title" id="visitedTitle">Visited Nodes</div>
-                                <div class="ds-content" id="visitedNodesContent"></div>
+                            <div class="horizontal-panels-wrapper">
+                                <div class="ds-panel" id="visitedNodesPanel">
+                                    <div class="ds-title" id="visitedTitle">Visited Nodes</div>
+                                    <div class="ds-content" id="visitedNodesContent"></div>
+                                </div>
+                                <div class="ds-panel" id="mstEdgesPanel">
+                                    <div class="ds-title">MST Edges</div>
+                                    <div class="ds-content" id="mstEdgesContent"></div>
+                                </div>
                             </div>
-                            <div class="ds-panel" id="mstEdgesPanel">
-                                <div class="ds-title">MST Edges</div>
-                                <div class="ds-content" id="mstEdgesContent"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="legend">
-                            <div class="legend-item"><div class="legend-color node-unvisited-color"></div><span>Unvisited</span></div>
-                            <div class="legend-item"><div class="legend-color node-visited-color"></div><span>Visited</span></div>
-                            <div class="legend-item"><div class="legend-color edge-color"></div><span>Edge</span></div>
-                            <div class="legend-item"><div class="legend-color mst-edge-color"></div><span>MST Edge</span></div>
-                            <div class="legend-item"><div class="legend-color consider-edge-color"></div><span>Considering</span></div>
-                            <div class="legend-item"><div class="legend-color cycle-edge-color"></div><span>Cycle</span></div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="user-mode-instructions" class="algorithm-info-panel" style="display: none;">
+            <h2>User Mode Instructions</h2>
+            
+            <h4>Creating Nodes:</h4>
+            <ul>
+                <li><strong>Click anywhere</strong> on the canvas to create a node</li>
+                <li>Nodes are automatically labeled A-Z</li>
+                <li><strong>Drag nodes</strong> to reposition them</li>
+            </ul>
+            
+            <h4>Creating Edges:</h4>
+            <ul>
+                <li><strong>Click first node</strong> - it will highlight</li>
+                <li><strong>Click second node</strong> - weight input appears</li>
+                <li>Enter positive weight and confirm</li>
+                <li>Edge automatically connects the nodes</li>
+            </ul>
+            
+            <h4>Editing & Deleting:</h4>
+            <ul>
+                <li><strong>Edit Weight:</strong> Click "Edit Weight" then click any edge</li>
+                <li><strong>Delete Edge:</strong> Click "Delete Edge" then click target edge</li>
+                <li><strong>Delete Node:</strong> Click "Delete Node" then click target node (removes connected edges too)</li>
+            </ul>
+            
+            <h4>Visualization:</h4>
+            <ul>
+                <li>Create at least <strong>2 nodes with edges</strong></li>
+                <li>Click "Visualize" to see algorithm steps</li>
+                <li>Use animation controls to pause/step through</li>
+            </ul>
+            
+            <div class="step-highlight" style="margin-top: 20px;">
+                💡 <strong>Tip:</strong> Hover over any edge to see its nodes and weight in the top-right panel
             </div>
         </div>
 
